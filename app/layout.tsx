@@ -1,13 +1,14 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { CartProvider } from '@/lib/cart-context'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import SiteShell from '@/components/layout/SiteShell'
 
 export const metadata: Metadata = {
   title: 'Velsario — Minimal Colors. Maximum Impact.',
-  description: 'Premium formal wear for men and women — crafted in pure black & white, built for those who mean business.',
-  keywords: 'Velsario, formal wear, black white fashion, premium clothing Bangladesh',
+  description:
+    'Premium formal wear for men and women — crafted in pure black & white, built for those who mean business.',
+  keywords:
+    'Velsario, formal wear, black white fashion, premium clothing Bangladesh',
   openGraph: {
     title: 'Velsario — Minimal Colors. Maximum Impact.',
     description: 'Premium formal wear for men and women.',
@@ -26,11 +27,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <CartProvider>
-          <Navbar />
-          <main className="min-h-screen">
+          <SiteShell>
             {children}
-          </main>
-          <Footer />
+          </SiteShell>
         </CartProvider>
       </body>
     </html>
