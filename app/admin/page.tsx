@@ -1,93 +1,245 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ShoppingCart, Package, MessageSquare, TrendingUp, ArrowUpRight, Eye } from 'lucide-react'
+import {
+  ShoppingCart,
+  Package,
+  TrendingUp,
+  Users,
+  ArrowUpRight,
+  Plus,
+  Eye
+} from 'lucide-react'
 import Link from 'next/link'
 
-const SHEET_API = 'https://script.google.com/macros/s/AKfycbxSOXG2YDG_O8QXIrVdEcXJ1uWDY8sdDZyYkqYtkh9sPFPv9dT8Hiqit-7sRtEZv5c/exec'
+const SHEET_API =
+  'https://script.google.com/macros/s/AKfycbxSOXG2YDG_O8QXIrVdEcXJ1uWDY8sdDZyYkqYtkh9sPFPv9dT8Hiqit-7sRtEZv5c/exec'
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({ orders: 0, totalSales: 0 })
+  const [stats, setStats] = useState({
+    orders: 0,
+    totalSales: 0,
+  })
+
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch(`${SHEET_API}?action=dailyStats`)
-      .then(r => r.json())
-      .then(data => { setStats(data); setLoading(false) })
+      .then((r) => r.json())
+      .then((data) => {
+        setStats({
+          orders: Number(data.orders || 0),
+          totalSales: Number(data.totalSales || 0),
+        })
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
   }, [])
 
   const cards = [
-    { label: "Today's Orders", value: loading ? '...' : stats.orders, icon: ShoppingCart, href: '/admin/orders', color: 'bg-blue-50 text-blue-600' },
-    { label: "Today's Revenue", value: loading ? '...' : `৳${stats.totalSales?.toLocaleString()}`, icon: TrendingUp, href: '/admin/orders', color: 'bg-green-50 text-green-600' },
-    { label: 'Total Products', value: '3', icon: Package, href: '/admin/products', color: 'bg-purple-50 text-purple-600' },
-    { label: 'Pending Content', value: '—', icon: Eye, href: '/admin/content', color: 'bg-orange-50 text-orange-600' },
+    {
+      label: "Today's Orders",
+      value: loading ? '...' : stats.orders,
+      icon: ShoppingCart,
+      href: '/admin/orders',
+    },
+    {
+      label: "Today's Revenue",
+      value: loading
+        ? '...'
+        : `৳${stats.totalSales.toLocaleString()}`,
+      icon: TrendingUp,
+      href: '/admin/orders',
+    },
+    {
+      label: 'Total Products',
+      value: '3',
+      icon: Package,
+      href: '/admin/products',
+    },
+    {
+      label: 'Customers',
+      value: '1',
+      icon: Users,
+      href: '/admin/customers',
+    },
   ]
 
   return (
-    <div>
-      <div className="mb-8">
-        <p className="text-xs tracking-widest uppercase text-v-gray mb-2">Overview</p>
-        <h1 className="text-2xl font-medium">Dashboard</h1>
+    <div className="max-w-7xl mx-auto">
+
+      {/* PAGE HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+
+        <div>
+          <p className="text-xs tracking-widest uppercase text-v-gray mb-2">
+            Overview
+          </p>
+
+          <h1 className="text-2xl font-medium">
+            Dashboard
+          </h1>
+
+          <p className="text-sm text-v-gray mt-1">
+            Welcome back. Here's what's happening with Velsario.
+          </p>
+        </div>
+
+        <Link
+          href="/admin/products/new"
+          className="inline-flex items-center justify-center gap-2 bg-v-black text-white px-5 py-3 text-xs tracking-wider hover:opacity-90"
+        >
+          <Plus size={15} />
+          Add Product
+        </Link>
+
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {cards.map(card => (
-          <Link key={card.label} href={card.href}
-            className="bg-white border border-v-border p-5 hover:shadow-md transition-shadow group">
-            <div className="flex justify-between items-start mb-4">
-              <div className={`p-2 rounded-lg ${card.color}`}>
-                <card.icon size={18} />
+      {/* STAT CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+        {cards.map((card) => {
+          const Icon = card.icon
+
+          return (
+            <Link
+              key={card.label}
+              href={card.href}
+              className="bg-white border border-v-border p-5 hover:shadow-md transition-shadow"
+            >
+
+              <div className="flex items-center justify-between mb-5">
+
+                <div className="w-10 h-10 bg-gray-100 flex items-center justify-center">
+                  <Icon size={18} />
+                </div>
+
+                <ArrowUpRight
+                  size={15}
+                  className="text-v-gray"
+                />
+
               </div>
-              <ArrowUpRight size={14} className="text-v-gray group-hover:text-v-black transition-colors" />
-            </div>
-            <p className="text-2xl font-semibold mb-1">{card.value}</p>
-            <p className="text-xs text-v-gray tracking-wider">{card.label}</p>
-          </Link>
-        ))}
+
+              <p className="text-2xl font-semibold mb-1">
+                {card.value}
+              </p>
+
+              <p className="text-xs text-v-gray tracking-wider">
+                {card.label}
+              </p>
+
+            </Link>
+          )
+        })}
+
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* LOWER SECTION */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* QUICK ACTIONS */}
         <div className="bg-white border border-v-border p-6">
-          <h2 className="text-xs tracking-widest uppercase font-medium mb-4">Quick Actions</h2>
-          <div className="flex flex-col gap-3">
-            {[
-              { label: 'Add New Product', href: '/admin/products/new' },
-              { label: 'View All Orders', href: '/admin/orders' },
-              { label: 'Approve Content', href: '/admin/content' },
-              { label: 'View Live Site', href: '/' },
-            ].map(action => (
-              <Link key={action.label} href={action.href}
-                className="flex items-center justify-between py-2 border-b border-v-border last:border-0 text-sm hover:text-v-gray transition-colors">
-                {action.label}
-                <ArrowUpRight size={14} className="text-v-gray" />
-              </Link>
-            ))}
+
+          <div className="flex items-center justify-between mb-5">
+
+            <h2 className="text-xs tracking-widest uppercase font-medium">
+              Quick Actions
+            </h2>
+
           </div>
+
+          <div className="flex flex-col">
+
+            {[
+              {
+                label: 'Add New Product',
+                href: '/admin/products/new',
+              },
+              {
+                label: 'Manage Orders',
+                href: '/admin/orders',
+              },
+              {
+                label: 'Manage Customers',
+                href: '/admin/customers',
+              },
+              {
+                label: 'Manage Content',
+                href: '/admin/content',
+              },
+              {
+                label: 'View Live Store',
+                href: '/',
+              },
+            ].map((action) => (
+
+              <Link
+                key={action.label}
+                href={action.href}
+                className="flex items-center justify-between py-4 border-b border-v-border last:border-0 text-sm hover:text-v-gray transition-colors"
+              >
+
+                <span>
+                  {action.label}
+                </span>
+
+                <ArrowUpRight
+                  size={15}
+                  className="text-v-gray"
+                />
+
+              </Link>
+
+            ))}
+
+          </div>
+
         </div>
 
+        {/* SYSTEM STATUS */}
         <div className="bg-v-black text-white p-6">
-          <h2 className="text-xs tracking-widest uppercase font-medium mb-4 text-gray-400">System Status</h2>
-          <div className="flex flex-col gap-3">
+
+          <h2 className="text-xs tracking-widest uppercase font-medium mb-5 text-gray-400">
+            System Status
+          </h2>
+
+          <div className="flex flex-col">
+
             {[
-              { label: 'Messenger Bot', status: 'Active' },
-              { label: 'Auto Posting', status: 'Active' },
-              { label: 'Daily Report', status: 'Active' },
-              { label: 'Job Search', status: 'Active' },
-            ].map(item => (
-              <div key={item.label} className="flex items-center justify-between py-2 border-b border-gray-800 last:border-0">
-                <span className="text-sm text-gray-300">{item.label}</span>
-                <span className="flex items-center gap-2 text-xs text-green-400">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  {item.status}
+              'Website',
+              'Order System',
+              'Product System',
+              'Admin Panel',
+            ].map((item) => (
+
+              <div
+                key={item}
+                className="flex items-center justify-between py-4 border-b border-gray-800 last:border-0"
+              >
+
+                <span className="text-sm text-gray-300">
+                  {item}
                 </span>
+
+                <span className="flex items-center gap-2 text-xs text-green-400">
+
+                  <span className="w-2 h-2 bg-green-400 rounded-full" />
+
+                  Active
+
+                </span>
+
               </div>
+
             ))}
+
           </div>
+
         </div>
+
       </div>
+
     </div>
   )
 }
