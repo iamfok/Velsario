@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { CartProvider } from '@/lib/cart-context'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 
 export const metadata: Metadata = {
   title: 'Velsario — Minimal Colors. Maximum Impact.',
@@ -24,7 +26,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <CartProvider>
-          {children}
+          <Navbar />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Footer />
         </CartProvider>
       </body>
     </html>

@@ -52,7 +52,7 @@ body {
   }
 
   .product-card {
-    @apply relative overflow-hidden cursor-pointer;
+    @apply group relative overflow-hidden cursor-pointer;
   }
 
   .product-card:hover .product-image {
@@ -62,7 +62,7 @@ body {
   .product-image {
     @apply transition-transform duration-700 ease-out;
   }
-  
+
   .nav-link {
     @apply text-xs tracking-widest uppercase text-v-black hover:text-v-gray transition-colors duration-200 font-medium;
   }
