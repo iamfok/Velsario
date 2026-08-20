@@ -47,10 +47,12 @@ export default function CheckoutPage() {
     }
   }
 
-  if (items.length === 0) {
+if (items.length === 0) {
+  if (typeof window !== 'undefined') {
     router.push('/cart')
-    return null
   }
+  return null
+}
 
   return (
     <div className="pt-20 min-h-screen">
