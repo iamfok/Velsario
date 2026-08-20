@@ -1,0 +1,149 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { Search, ShoppingBag, Menu, X, ChevronDown } from 'lucide-react'
+import { useCart } from '@/lib/cart-context'
+
+const navCategories = [
+  { name: 'Velsario Shirt', slug: 'velsario-shirt' },
+  { name: 'Velsario Pants', slug: 'velsario-pants' },
+  { name: 'Accessories', slug: 'accessories' },
+  { name: 'Evening Dresses', slug: 'evening-dresses' },
+  { name: 'Activewear', slug: 'activewear' },
+]
+
+export default function Navbar() {
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [catalogOpen, setCatalogOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const { itemCount } = useCart()
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  return (
+    <>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? 'bg-v-white border-b border-v-border shadow-sm' : 'bg-transparent'
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <div className="flex items-center justify-between h-16 md:h-20">
+            
+            {/* Left — Catalog */}
+            <div className="hidden md:flex items-center gap-8">
+              <div 
+                className="relative group"
+                onMouseEnter={() => setCatalogOpen(true)}
+                onMouseLeave={() => setCatalogOpen(false)}
+              >
+                <button className="nav-link flex items-center gap-1">
+                  Catalog <ChevronDown size={12} />
+                </button>
+                {catalogOpen && (
+                  <div className="absolute top-full left-0 pt-4">
+                    <div className="bg-v-white border border-v-border shadow-lg min-w-48 py-2">
+                      {navCategories.map(cat => (
+                        <Link
+                          key={cat.slug}
+                          href={`/shop?category=${cat.slug}`}
+                          className="block px-6 py-3 text-xs tracking-wider uppercase text-v-black hover:bg-v-light transition-colors"
+                        >
+                          {cat.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <Link href="/shop" className="nav-link">Shop</Link>
+              <Link href="/about" className="nav-link">About</Link>
+            </div>
+
+            {/* Center — Logo */}
+            <Link href="/" className="absolute left-1/2 -translate-x-1/2">
+              <span className="font-display text-2xl font-semibold tracking-widest text-v-black">
+                VELSARIO
+              </span>
+            </Link>
+
+            {/* Right — Icons */}
+            <div className="flex items-center gap-4 md:gap-6">
+              <button 
+                onClick={() => setSearchOpen(!searchOpen)}
+                className="text-v-black hover:text-v-gray transition-colors"
+              >
+                <Search size={18} />
+              </button>
+              <Link href="/cart" className="relative text-v-black hover:text-v-gray transition-colors">
+                <ShoppingBag size={18} />
+                {itemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-v-black text-v-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-medium">
+                    {itemCount}
+                  </span>
+                )}
+              </Link>
+              <button 
+                className="md:hidden text-v-black"
+                onClick={() => setMobileOpen(!mobileOpen)}
+              >
+                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        {searchOpen && (
+          <div className="border-t border-v-border bg-v-white px-4 md:px-8 py-4">
+            <div className="max-w-2xl mx-auto flex items-center gap-4">
+              <Search size={16} className="text-v-gray" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-transparent border-none outline-none text-sm tracking-wide"
+                autoFocus
+              />
+              <button onClick={() => setSearchOpen(false)}>
+                <X size={16} className="text-v-gray" />
+              </button>
+            </div>
+          </div>
+        )}
+      </nav>
+
+      {/* Mobile Menu */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 bg-v-white pt-20">
+          <div className="px-8 py-8 flex flex-col gap-6">
+            <div>
+              <p className="section-label mb-4">Catalog</p>
+              {navCategories.map(cat => (
+                <Link
+                  key={cat.slug}
+                  href={`/shop?category=${cat.slug}`}
+                  className="block py-3 text-sm tracking-wider uppercase border-b border-v-border text-v-black"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
+            <div className="flex flex-col gap-4 pt-4">
+              <Link href="/shop" className="nav-link" onClick={() => setMobileOpen(false)}>Shop All</Link>
+              <Link href="/about" className="nav-link" onClick={() => setMobileOpen(false)}>About</Link>
+              <Link href="/contact" className="nav-link" onClick={() => setMobileOpen(false)}>Contact</Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
