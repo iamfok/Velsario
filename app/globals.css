@@ -52,7 +52,7 @@ body {
   }
 
   .product-card {
-    @apply group relative overflow-hidden cursor-pointer;
+    @apply relative overflow-hidden cursor-pointer;
   }
 
   .product-card:hover .product-image {

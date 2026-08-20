@@ -208,7 +208,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {related.map(p => (
-                <Link key={p.id} href={`/shop/${p.id}`} className="product-card">
+                <Link key={p.id} href={`/shop/${p.id}`} className="product-card group">
                   <div className="aspect-[3/4] bg-v-light overflow-hidden mb-3">
                     <img src={p.images[0]} alt={p.name} className="product-image w-full h-full object-cover" />
                   </div>

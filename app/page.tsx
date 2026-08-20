@@ -68,7 +68,7 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {featuredProducts.map(product => (
-            <Link key={product.id} href={`/shop/${product.id}`} className="product-card">
+            <Link key={product.id} href={`/shop/${product.id}`} className="product-card group">
               <div className="aspect-[3/4] bg-v-light overflow-hidden mb-4">
                 <img
                   src={product.images[0]}
@@ -111,7 +111,7 @@ export default function HomePage() {
             <Link
               key={cat.name}
               href={`/shop?category=${cat.slug}${cat.filter ? `&sub=${cat.filter}` : ''}`}
-              className="product-card"
+              className="product-card group"
             >
               <div className="aspect-[3/4] overflow-hidden bg-v-light">
                 <img
@@ -159,7 +159,7 @@ export default function HomePage() {
             <Link
               key={cat.name}
               href={`/shop?category=${cat.slug}${cat.filter ? `&sub=${cat.filter}` : ''}`}
-              className="product-card"
+              className="product-card group"
             >
               <div className="aspect-[3/4] overflow-hidden bg-v-light">
                 <img
@@ -191,7 +191,7 @@ export default function HomePage() {
           </div>
           <div className="flex-1 grid grid-cols-2 gap-4">
             {featuredProducts.slice(0, 2).map(product => (
-              <Link key={product.id} href={`/shop/${product.id}`} className="product-card">
+              <Link key={product.id} href={`/shop/${product.id}`} className="product-card group">
                 <div className="aspect-[3/4] bg-v-white overflow-hidden">
                   <img
                     src={product.images[0]}

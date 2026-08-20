@@ -152,7 +152,7 @@ function ShopContent() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 {filtered.map(product => (
-                  <Link key={product.id} href={`/shop/${product.id}`} className="product-card">
+                  <Link key={product.id} href={`/shop/${product.id}`} className="product-card group">
                     <div className="aspect-[3/4] bg-v-light overflow-hidden relative mb-3">
                       <img
                         src={product.images[0]}
