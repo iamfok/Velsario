@@ -4,84 +4,157 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, Package, ShoppingCart, Image,
-  FileText, Settings, LogOut, Menu, X, ChevronRight
+  LayoutDashboard,
+  Package,
+  Tags,
+  ShoppingCart,
+  Users,
+  ShieldCheck,
+  Ticket,
+  Star,
+  Warehouse,
+  Image,
+  BarChart3,
+  Settings,
+  Menu,
+  X,
+  FileText
 } from 'lucide-react'
 
 const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Products', href: '/admin/products', icon: Package },
+  { label: 'Categories', href: '/admin/categories', icon: Tags },
+  { label: 'Brands', href: '/admin/brands', icon: Tags },
   { label: 'Orders', href: '/admin/orders', icon: ShoppingCart },
-  { label: 'Content', href: '/admin/content', icon: Image },
+  { label: 'Customers', href: '/admin/customers', icon: Users },
+  { label: 'Users & Access', href: '/admin/users', icon: ShieldCheck },
+  { label: 'Coupons', href: '/admin/coupons', icon: Ticket },
+  { label: 'Reviews', href: '/admin/reviews', icon: Star },
+  { label: 'Inventory', href: '/admin/inventory', icon: Warehouse },
+  { label: 'Banners', href: '/admin/banners', icon: Image },
+  { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+  { label: 'Media Library', href: '/admin/media', icon: Image },
   { label: 'Pages', href: '/admin/pages', icon: FileText },
   { label: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const pathname = usePathname()
 
   return (
     <div className="flex h-screen bg-gray-50 font-body">
 
-      {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-56' : 'w-16'} bg-v-black text-white flex flex-col transition-all duration-300 flex-shrink-0`}>
-        <div className="flex items-center justify-between p-4 border-b border-gray-800">
-          {sidebarOpen && <span className="font-display text-lg tracking-widest">VELSARIO</span>}
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-gray-400 hover:text-white transition-colors ml-auto">
-            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+      {/* SIDEBAR */}
+      <aside
+        className={`${
+          sidebarOpen ? 'w-60' : 'w-16'
+        } bg-v-black text-white flex flex-col transition-all duration-300 flex-shrink-0`}
+      >
+
+        {/* Logo */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-800">
+          {sidebarOpen && (
+            <span className="font-display text-lg tracking-widest">
+              VELSARIO
+            </span>
+          )}
+
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="text-gray-400 hover:text-white ml-auto"
+          >
+            {sidebarOpen ? <X size={19} /> : <Menu size={19} />}
           </button>
         </div>
 
-        <nav className="flex-1 py-4">
-          {navItems.map(item => {
-            const isActive = pathname === item.href
+        {/* MENU */}
+        <nav className="flex-1 py-3 overflow-y-auto">
+
+          {navItems.map((item) => {
+            const Icon = item.icon
+            const isActive =
+              pathname === item.href ||
+              (item.href !== '/admin' &&
+                pathname.startsWith(item.href))
+
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-                  isActive ? 'bg-white text-v-black' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  isActive
+                    ? 'bg-white text-v-black'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
                 }`}
               >
-                <item.icon size={18} className="flex-shrink-0" />
-                {sidebarOpen && <span className="text-xs tracking-wider uppercase">{item.label}</span>}
+                <Icon size={18} className="flex-shrink-0" />
+
+                {sidebarOpen && (
+                  <span className="text-xs tracking-wider">
+                    {item.label}
+                  </span>
+                )}
               </Link>
             )
           })}
+
         </nav>
 
+        {/* VIEW STORE */}
         <div className="border-t border-gray-800 p-4">
-          <Link href="/" className={`flex items-center gap-3 text-gray-400 hover:text-white transition-colors`}>
-            <LogOut size={18} />
-            {sidebarOpen && <span className="text-xs tracking-wider uppercase">View Site</span>}
+          <Link
+            href="/"
+            className="flex items-center gap-3 text-gray-400 hover:text-white"
+          >
+            <Package size={18} />
+
+            {sidebarOpen && (
+              <span className="text-xs tracking-wider">
+                View Store
+              </span>
+            )}
           </Link>
         </div>
+
       </aside>
 
-      {/* Main */}
+      {/* MAIN ADMIN AREA */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-v-border px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-v-gray">
-            <span>Admin</span>
-            {pathname !== '/admin' && (
-              <>
-                <ChevronRight size={12} />
-                <span className="text-v-black capitalize">{pathname.split('/').pop()}</span>
-              </>
-            )}
+
+        {/* ADMIN HEADER */}
+        <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between">
+
+          <div className="text-xs text-gray-500">
+            Admin Panel
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-v-black rounded-full flex items-center justify-center text-white text-xs font-medium">
+
+          <div className="flex items-center gap-3">
+
+            <div className="w-8 h-8 bg-v-black rounded-full flex items-center justify-center text-white text-xs">
               A
             </div>
-            <span className="text-xs text-v-gray hidden md:block">Admin</span>
+
+            <span className="text-xs text-gray-600 hidden md:block">
+              Admin
+            </span>
+
           </div>
+
         </header>
+
+        {/* CONTENT */}
         <main className="flex-1 overflow-auto p-6">
           {children}
         </main>
+
       </div>
+
     </div>
   )
 }
