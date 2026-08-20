@@ -16,6 +16,20 @@ export default function NewProductPage() {
   const [stock, setStock] = useState('')
   const [featured, setFeatured] = useState(false)
   const [inStock, setInStock] = useState(true)
+  const [saved, setSaved] = useState(false)
+
+  const handleSave = () => {
+    if (!name.trim() || !price) {
+      alert('Please enter Product Name and Regular Price.')
+      return
+    }
+
+    setSaved(true)
+
+    setTimeout(() => {
+      setSaved(false)
+    }, 2500)
+  }
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -51,6 +65,7 @@ export default function NewProductPage() {
 
             {/* NAME */}
             <div>
+
               <label className="block text-xs tracking-wider mb-2">
                 Product Name
               </label>
@@ -62,10 +77,12 @@ export default function NewProductPage() {
                 placeholder="e.g. Velsario Men's White Formal Shirt"
                 className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
               />
+
             </div>
 
             {/* SKU */}
             <div>
+
               <label className="block text-xs tracking-wider mb-2">
                 SKU
               </label>
@@ -77,37 +94,49 @@ export default function NewProductPage() {
                 placeholder="e.g. VEL-SHIRT-001"
                 className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
               />
+
             </div>
 
             {/* CATEGORY + COLOR */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               <div>
+
                 <label className="block text-xs tracking-wider mb-2">
                   Category
                 </label>
 
-                <input
-                  type="text"
+                <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  placeholder="Shirts"
-                  className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
-                />
+                  className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black bg-white"
+                >
+                  <option value="">Select category</option>
+                  <option value="Shirts">Shirts</option>
+                  <option value="Polo">Polo</option>
+                  <option value="T-Shirts">T-Shirts</option>
+                  <option value="Pants">Pants</option>
+                  <option value="Accessories">Accessories</option>
+                </select>
+
               </div>
 
               <div>
+
                 <label className="block text-xs tracking-wider mb-2">
                   Color
                 </label>
 
-                <input
-                  type="text"
+                <select
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
-                  placeholder="Black / White"
-                  className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
-                />
+                  className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black bg-white"
+                >
+                  <option value="">Select color</option>
+                  <option value="Black">Black</option>
+                  <option value="White">White</option>
+                </select>
+
               </div>
 
             </div>
@@ -116,52 +145,62 @@ export default function NewProductPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               <div>
+
                 <label className="block text-xs tracking-wider mb-2">
                   Regular Price (BDT)
                 </label>
 
                 <input
                   type="number"
+                  min="0"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   placeholder="0"
                   className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
                 />
+
               </div>
 
               <div>
+
                 <label className="block text-xs tracking-wider mb-2">
                   Sale Price (BDT)
                 </label>
 
                 <input
                   type="number"
+                  min="0"
                   value={salePrice}
                   onChange={(e) => setSalePrice(e.target.value)}
                   placeholder="Optional"
                   className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
                 />
+
               </div>
 
             </div>
 
             {/* STOCK */}
             <div>
+
               <label className="block text-xs tracking-wider mb-2">
                 Stock Quantity
               </label>
 
               <input
                 type="number"
+                min="0"
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}
                 placeholder="0"
                 className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
               />
+
             </div>
 
             {/* DESCRIPTION */}
             <div>
+
               <label className="block text-xs tracking-wider mb-2">
                 Description
               </label>
@@ -173,6 +212,7 @@ export default function NewProductPage() {
                 rows={7}
                 className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black resize-none"
               />
+
             </div>
 
           </div>
@@ -199,6 +239,7 @@ export default function NewProductPage() {
                 />
               ) : (
                 <div className="text-center text-gray-400">
+
                   <ImagePlus
                     size={28}
                     className="mx-auto mb-2"
@@ -207,6 +248,7 @@ export default function NewProductPage() {
                   <p className="text-xs">
                     Image preview
                   </p>
+
                 </div>
               )}
 
@@ -221,7 +263,7 @@ export default function NewProductPage() {
             />
 
             <p className="text-xs text-v-gray mt-2">
-              Image upload will be connected later with Media Library.
+              Media Library upload will be connected later.
             </p>
 
           </div>
@@ -270,7 +312,13 @@ export default function NewProductPage() {
       </div>
 
       {/* ACTIONS */}
-      <div className="flex justify-end gap-3 mt-6">
+      <div className="flex items-center justify-end gap-4 mt-6">
+
+        {saved && (
+          <span className="text-xs text-green-600">
+            Product saved successfully
+          </span>
+        )}
 
         <Link
           href="/admin/products"
@@ -281,6 +329,7 @@ export default function NewProductPage() {
 
         <button
           type="button"
+          onClick={handleSave}
           className="flex items-center gap-2 bg-v-black text-white px-6 py-3 text-xs tracking-wider hover:opacity-90"
         >
           <Save size={15} />
