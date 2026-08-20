@@ -5,12 +5,33 @@ import Link from 'next/link'
 import { ArrowLeft, Save, Trash2 } from 'lucide-react'
 
 export default function EditProductPage() {
-  const [name, setName] = useState('')
-  const [category, setCategory] = useState('')
-  const [price, setPrice] = useState('')
-  const [description, setDescription] = useState('')
+  const [name, setName] = useState('Premium Formal Shirt')
+  const [category, setCategory] = useState('Shirts')
+  const [price, setPrice] = useState('2490')
+  const [description, setDescription] = useState(
+    'Premium quality formal shirt designed for a clean and elegant look.'
+  )
   const [image, setImage] = useState('')
   const [inStock, setInStock] = useState(true)
+  const [saved, setSaved] = useState(false)
+
+  const handleSave = () => {
+    setSaved(true)
+
+    setTimeout(() => {
+      setSaved(false)
+    }, 2500)
+  }
+
+  const handleDelete = () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this product?'
+    )
+
+    if (!confirmed) return
+
+    window.location.href = '/admin/products'
+  }
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -28,6 +49,7 @@ export default function EditProductPage() {
           </Link>
 
           <div>
+
             <p className="text-xs tracking-widest uppercase text-v-gray mb-2">
               Products
             </p>
@@ -35,12 +57,14 @@ export default function EditProductPage() {
             <h1 className="text-2xl font-medium">
               Edit Product
             </h1>
+
           </div>
 
         </div>
 
         <button
           type="button"
+          onClick={handleDelete}
           className="flex items-center gap-2 text-xs text-red-500 hover:text-red-700"
         >
           <Trash2 size={15} />
@@ -78,13 +102,17 @@ export default function EditProductPage() {
               Category
             </label>
 
-            <input
-              type="text"
+            <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              placeholder="Category"
-              className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
-            />
+              className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black bg-white"
+            >
+              <option>Shirts</option>
+              <option>Polo</option>
+              <option>T-Shirts</option>
+              <option>Pants</option>
+              <option>Accessories</option>
+            </select>
 
           </div>
 
@@ -122,11 +150,13 @@ export default function EditProductPage() {
 
             {image && (
               <div className="mt-4 w-32 h-32 bg-gray-100 overflow-hidden">
+
                 <img
                   src={image}
                   alt="Product preview"
                   className="w-full h-full object-cover"
                 />
+
               </div>
             )}
 
@@ -172,7 +202,13 @@ export default function EditProductPage() {
         </div>
 
         {/* ACTIONS */}
-        <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-v-border">
+        <div className="flex items-center justify-end gap-4 mt-8 pt-6 border-t border-v-border">
+
+          {saved && (
+            <span className="text-xs text-green-600">
+              Product saved successfully
+            </span>
+          )}
 
           <Link
             href="/admin/products"
@@ -183,6 +219,7 @@ export default function EditProductPage() {
 
           <button
             type="button"
+            onClick={handleSave}
             className="flex items-center gap-2 bg-v-black text-white px-5 py-3 text-xs tracking-wider hover:opacity-90"
           >
             <Save size={15} />
