@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Save, ImagePlus } from 'lucide-react'
+import { ArrowLeft, Save, ImagePlus, Upload, X } from 'lucide-react'
 
 export default function NewProductPage() {
   const [name, setName] = useState('')
@@ -16,6 +16,80 @@ export default function NewProductPage() {
   const [stock, setStock] = useState('')
   const [featured, setFeatured] = useState(false)
   const [inStock, setInStock] = useState(true)
+  const [saved, setSaved] = useState(false)
+
+  const handleImageUpload = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0]
+
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.')
+      return
+    }
+
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      setImage(reader.result as string)
+    }
+
+    reader.readAsDataURL(file)
+  }
+
+  const removeImage = () => {
+    setImage('')
+  }
+
+  const handleSave = () => {
+    if (!name.trim()) {
+      alert('Please enter a product name.')
+      return
+    }
+
+    if (!price) {
+      alert('Please enter the product price.')
+      return
+    }
+
+    const product = {
+      id:
+        sku.trim() ||
+        `VEL-${Date.now()}`,
+      name,
+      sku,
+      category,
+      price: Number(price),
+      salePrice: salePrice ? Number(salePrice) : null,
+      description,
+      image,
+      color,
+      stock: Number(stock || 0),
+      featured,
+      inStock,
+      createdAt: new Date().toISOString(),
+    }
+
+    const existingProducts = JSON.parse(
+      localStorage.getItem('velsario-products') || '[]'
+    )
+
+    localStorage.setItem(
+      'velsario-products',
+      JSON.stringify([
+        ...existingProducts,
+        product,
+      ])
+    )
+
+    setSaved(true)
+
+    setTimeout(() => {
+      window.location.href = '/admin/products'
+    }, 800)
+  }
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -125,6 +199,7 @@ export default function NewProductPage() {
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   placeholder="0"
+                  min="0"
                   className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
                 />
               </div>
@@ -139,6 +214,7 @@ export default function NewProductPage() {
                   value={salePrice}
                   onChange={(e) => setSalePrice(e.target.value)}
                   placeholder="Optional"
+                  min="0"
                   className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
                 />
               </div>
@@ -156,6 +232,7 @@ export default function NewProductPage() {
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}
                 placeholder="0"
+                min="0"
                 className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
               />
             </div>
@@ -189,39 +266,91 @@ export default function NewProductPage() {
               Product Image
             </p>
 
-            <div className="aspect-square bg-gray-50 border border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+            <div className="aspect-square bg-gray-50 border border-dashed border-gray-300 flex items-center justify-center overflow-hidden relative">
 
               {image ? (
-                <img
-                  src={image}
-                  alt="Product preview"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="text-center text-gray-400">
-                  <ImagePlus
-                    size={28}
-                    className="mx-auto mb-2"
+                <>
+                  <img
+                    src={image}
+                    alt="Product preview"
+                    className="w-full h-full object-cover"
                   />
 
-                  <p className="text-xs">
-                    Image preview
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-3 right-3 w-8 h-8 bg-black text-white flex items-center justify-center hover:opacity-80"
+                  >
+                    <X size={15} />
+                  </button>
+                </>
+              ) : (
+                <div className="text-center text-gray-400">
+
+                  <ImagePlus
+                    size={30}
+                    className="mx-auto mb-3"
+                  />
+
+                  <p className="text-xs mb-4">
+                    No image selected
                   </p>
+
+                  <label className="inline-flex items-center gap-2 bg-black text-white px-4 py-3 text-xs tracking-wider cursor-pointer hover:opacity-90">
+                    <Upload size={14} />
+                    Upload Image
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+
                 </div>
               )}
 
             </div>
 
-            <input
-              type="text"
-              value={image}
-              onChange={(e) => setImage(e.target.value)}
-              placeholder="Paste image URL"
-              className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black mt-4"
-            />
+            {/* UPLOAD BUTTON WHEN IMAGE EXISTS */}
+            {image && (
+              <label className="mt-4 w-full flex items-center justify-center gap-2 border border-v-border px-4 py-3 text-xs tracking-wider cursor-pointer hover:bg-gray-100">
+                <Upload size={14} />
+                Change Image
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
+            )}
+
+            {/* URL OPTION */}
+            <div className="mt-4">
+
+              <p className="text-xs text-v-gray mb-2">
+                Or use image URL
+              </p>
+
+              <input
+                type="text"
+                value={
+                  image.startsWith('data:')
+                    ? ''
+                    : image
+                }
+                onChange={(e) => setImage(e.target.value)}
+                placeholder="https://..."
+                className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
+              />
+
+            </div>
 
             <p className="text-xs text-v-gray mt-2">
-              Image upload will be connected later with Media Library.
+              You can upload an image directly from your computer or paste an image URL.
             </p>
 
           </div>
@@ -281,10 +410,12 @@ export default function NewProductPage() {
 
         <button
           type="button"
+          onClick={handleSave}
           className="flex items-center gap-2 bg-v-black text-white px-6 py-3 text-xs tracking-wider hover:opacity-90"
         >
           <Save size={15} />
-          Save Product
+
+          {saved ? 'Saved!' : 'Save Product'}
         </button>
 
       </div>
