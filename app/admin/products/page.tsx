@@ -1,23 +1,105 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Plus,
   Edit,
   Trash2,
   Search,
-  Package
+  Package,
 } from 'lucide-react'
-import { products } from '@/lib/products'
+import { products as defaultProducts } from '@/lib/products'
+
+type AdminProduct = {
+  id: string
+  name: string
+  price: number
+  salePrice?: number | null
+  category: string
+  images: string[]
+  image?: string
+  stock: number
+  inStock: boolean
+}
 
 export default function AdminProductsPage() {
   const [search, setSearch] = useState('')
+  const [allProducts, setAllProducts] = useState<AdminProduct[]>([])
 
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.category.toLowerCase().includes(search.toLowerCase())
+  useEffect(() => {
+    const savedProducts = JSON.parse(
+      localStorage.getItem('velsario-products') || '[]'
+    )
+
+    const savedFormatted: AdminProduct[] = savedProducts.map(
+      (product: any) => ({
+        id: product.id,
+        name: product.name,
+        price: Number(product.price || 0),
+        salePrice: product.salePrice,
+        category: product.category || 'Uncategorized',
+        images: product.image
+          ? [product.image]
+          : [],
+        image: product.image,
+        stock: Number(product.stock || 0),
+        inStock: product.inStock,
+      })
+    )
+
+    const defaultFormatted: AdminProduct[] =
+      defaultProducts.map((product) => ({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        category: product.category,
+        images: product.images || [],
+        stock: product.inStock ? 1 : 0,
+        inStock: product.inStock,
+      }))
+
+    setAllProducts([
+      ...savedFormatted,
+      ...defaultFormatted.filter(
+        (defaultProduct) =>
+          !savedFormatted.some(
+            (savedProduct) =>
+              savedProduct.id === defaultProduct.id
+          )
+      ),
+    ])
+  }, [])
+
+  const filtered = allProducts.filter((product) =>
+    product.name.toLowerCase().includes(search.toLowerCase()) ||
+    product.category.toLowerCase().includes(search.toLowerCase())
   )
+
+  const handleDelete = (id: string) => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this product?'
+    )
+
+    if (!confirmed) return
+
+    const savedProducts = JSON.parse(
+      localStorage.getItem('velsario-products') || '[]'
+    )
+
+    const updatedProducts = savedProducts.filter(
+      (product: any) => product.id !== id
+    )
+
+    localStorage.setItem(
+      'velsario-products',
+      JSON.stringify(updatedProducts)
+    )
+
+    setAllProducts((current) =>
+      current.filter((product) => product.id !== id)
+    )
+  }
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -76,7 +158,7 @@ export default function AdminProductsPage() {
 
         <div className="overflow-x-auto">
 
-          <table className="w-full min-w-[700px]">
+          <table className="w-full min-w-[800px]">
 
             <thead>
 
@@ -123,15 +205,22 @@ export default function AdminProductsPage() {
                       <div className="w-12 h-12 bg-gray-100 flex-shrink-0 overflow-hidden">
 
                         {product.images?.[0] ? (
+
                           <img
                             src={product.images[0]}
                             alt={product.name}
                             className="w-full h-full object-cover"
                           />
+
                         ) : (
+
                           <div className="w-full h-full flex items-center justify-center">
-                            <Package size={18} className="text-gray-400" />
+                            <Package
+                              size={18}
+                              className="text-gray-400"
+                            />
                           </div>
+
                         )}
 
                       </div>
@@ -164,26 +253,50 @@ export default function AdminProductsPage() {
                   {/* PRICE */}
                   <td className="px-6 py-4">
 
-                    <span className="text-sm font-medium">
-                      ৳{product.price.toLocaleString()}
-                    </span>
+                    <div>
+
+                      {product.salePrice ? (
+                        <>
+                          <span className="text-sm font-medium">
+                            ৳{product.salePrice.toLocaleString()}
+                          </span>
+
+                          <span className="text-xs text-gray-400 line-through ml-2">
+                            ৳{product.price.toLocaleString()}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-sm font-medium">
+                          ৳{product.price.toLocaleString()}
+                        </span>
+                      )}
+
+                    </div>
 
                   </td>
 
                   {/* STOCK */}
                   <td className="px-6 py-4">
 
-                    <span
-                      className={`inline-flex px-3 py-1 text-xs ${
-                        product.inStock
-                          ? 'bg-green-50 text-green-700'
-                          : 'bg-red-50 text-red-600'
-                      }`}
-                    >
-                      {product.inStock
-                        ? 'In Stock'
-                        : 'Out of Stock'}
-                    </span>
+                    <div className="flex flex-col gap-1">
+
+                      <span
+                        className={`inline-flex w-fit px-3 py-1 text-xs ${
+                          product.inStock
+                            ? 'bg-green-50 text-green-700'
+                            : 'bg-red-50 text-red-600'
+                        }`}
+                      >
+                        {product.inStock
+                          ? 'In Stock'
+                          : 'Out of Stock'}
+                      </span>
+
+                      <span className="text-xs text-gray-400">
+                        {product.stock} units
+                      </span>
+
+                    </div>
 
                   </td>
 
@@ -202,6 +315,7 @@ export default function AdminProductsPage() {
 
                       <button
                         type="button"
+                        onClick={() => handleDelete(product.id)}
                         className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50"
                         title="Delete product"
                       >
@@ -244,7 +358,7 @@ export default function AdminProductsPage() {
 
       {/* TOTAL */}
       <div className="mt-4 text-xs text-v-gray">
-        Showing {filtered.length} of {products.length} products
+        Showing {filtered.length} of {allProducts.length} products
       </div>
 
     </div>
