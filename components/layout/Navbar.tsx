@@ -19,7 +19,7 @@ const navCategories = [
   { name: 'Activewear', slug: 'activewear' },
 ]
 
-type Settings = {
+type SiteSettings = {
   headerLogoWhite?: string
   headerLogoBlack?: string
   headerLogoEnabled?: boolean
@@ -28,50 +28,24 @@ type Settings = {
   headerLogoBlackWidth?: number
 }
 
-const defaultSettings: Settings = {
-  headerLogoWhite: '',
-  headerLogoBlack: '',
-  headerLogoEnabled: true,
-  headerEnabled: true,
-  headerLogoWhiteWidth: 150,
-  headerLogoBlackWidth: 150,
-}
-
 export default function Navbar() {
-  const [isScrolled, setIsScrolled] =
-    useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [catalogOpen, setCatalogOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
-  const [mobileOpen, setMobileOpen] =
-    useState(false)
-
-  const [catalogOpen, setCatalogOpen] =
-    useState(false)
-
-  const [searchOpen, setSearchOpen] =
-    useState(false)
-
-  const [searchQuery, setSearchQuery] =
-    useState('')
-
-  const [settings, setSettings] =
-    useState<Settings>(defaultSettings)
+  const [settings, setSettings] = useState<SiteSettings>({})
 
   const { itemCount } = useCart()
 
   useEffect(() => {
-
     const loadSettings = () => {
       try {
-        const saved =
-          localStorage.getItem(
-            'velsario-settings'
-          )
+        const saved = localStorage.getItem('velsario-settings')
 
         if (saved) {
-          setSettings({
-            ...defaultSettings,
-            ...JSON.parse(saved),
-          })
+          setSettings(JSON.parse(saved))
         }
       } catch {}
     }
@@ -92,160 +66,161 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
-
     const handleScroll = () => {
-      setIsScrolled(
-        window.scrollY > 20
-      )
+      setIsScrolled(window.scrollY > 20)
     }
 
-    window.addEventListener(
-      'scroll',
-      handleScroll
-    )
+    window.addEventListener('scroll', handleScroll)
 
     handleScroll()
 
-    return () =>
-      window.removeEventListener(
-        'scroll',
-        handleScroll
-      )
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
   }, [])
 
   if (settings.headerEnabled === false) {
     return null
   }
 
-  const logo =
-    isScrolled
-      ? settings.headerLogoBlack
-      : settings.headerLogoWhite
+  const currentLogo = isScrolled
+    ? settings.headerLogoBlack
+    : settings.headerLogoWhite
 
-  const logoWidth =
-    isScrolled
-      ? settings.headerLogoBlackWidth || 150
-      : settings.headerLogoWhiteWidth || 150
+  const currentLogoWidth = isScrolled
+    ? settings.headerLogoBlackWidth || 150
+    : settings.headerLogoWhiteWidth || 150
 
-  const textColor =
-    isScrolled
-      ? 'text-v-black'
-      : 'text-white'
+  const textColor = isScrolled
+    ? 'text-v-black'
+    : 'text-white'
 
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'bg-white/95 backdrop-blur-md border-b border-v-border shadow-sm'
+            ? 'bg-v-white border-b border-v-border shadow-sm'
             : 'bg-transparent'
         }`}
       >
-
         <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <div className="flex items-center justify-between h-16 md:h-20">
 
-          <div className="relative flex items-center justify-between h-16 md:h-20">
-
-            {/* LEFT */}
-
-            <div className="hidden md:flex items-center">
+            {/* LEFT — CATALOG ONLY */}
+            <div className="hidden md:flex items-center gap-8">
 
               <div
-                className="relative"
-                onMouseEnter={() =>
-                  setCatalogOpen(true)
-                }
-                onMouseLeave={() =>
-                  setCatalogOpen(false)
-                }
+                className="relative group"
+                onMouseEnter={() => setCatalogOpen(true)}
+                onMouseLeave={() => setCatalogOpen(false)}
               >
 
                 <button
-                  className={`flex items-center gap-1 text-xs tracking-widest uppercase font-medium transition-all duration-300 ${textColor}`}
+                  className={`nav-link flex items-center gap-1 ${textColor}`}
                 >
                   Catalog
 
                   <ChevronDown
                     size={12}
                     className={`transition-transform duration-300 ${
-                      catalogOpen
-                        ? 'rotate-180'
-                        : ''
+                      catalogOpen ? 'rotate-180' : ''
                     }`}
                   />
                 </button>
 
+                {/* EXISTING DYNAMIC MEGA/DROPDOWN STYLE */}
+                {catalogOpen && (
+                  <div className="absolute top-full left-0 pt-4">
 
-                {/* DROPDOWN */}
+                    <div
+                      className="
+                        relative
+                        overflow-hidden
+                        bg-v-white/95
+                        backdrop-blur-xl
+                        border border-v-border
+                        shadow-xl
+                        min-w-64
+                        py-2
+                        animate-[fadeIn_180ms_ease-out]
+                      "
+                    >
 
-                <div
-                  className={`absolute top-full left-0 pt-5 transition-all duration-300 ${
-                    catalogOpen
-                      ? 'opacity-100 translate-y-0 pointer-events-auto'
-                      : 'opacity-0 -translate-y-2 pointer-events-none'
-                  }`}
-                >
+                      {/* Dynamic background structure */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-gray-100 pointer-events-none" />
 
-                  <div className="relative overflow-hidden min-w-[250px] bg-white/95 backdrop-blur-xl border border-v-border shadow-xl">
+                      <div className="relative">
 
-                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-gray-50 via-white to-gray-100" />
-
-                    <div className="relative py-3">
-
-                      {navCategories.map(
-                        (cat, index) => (
-
+                        {navCategories.map((cat) => (
                           <Link
                             key={cat.slug}
                             href={`/shop?category=${cat.slug}`}
-                            className="group flex items-center justify-between px-6 py-4 text-xs tracking-wider uppercase text-v-black hover:bg-black hover:text-white transition-all duration-300"
-                            onClick={() =>
-                              setCatalogOpen(false)
-                            }
+                            className="
+                              group
+                              flex items-center justify-between
+                              px-6 py-4
+                              text-xs
+                              tracking-wider
+                              uppercase
+                              text-v-black
+                              hover:bg-v-black
+                              hover:text-white
+                              transition-all
+                              duration-300
+                            "
+                            onClick={() => setCatalogOpen(false)}
                           >
-
                             <span>
                               {cat.name}
                             </span>
 
-                            <span className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                            <span className="
+                              opacity-0
+                              -translate-x-2
+                              group-hover:opacity-100
+                              group-hover:translate-x-0
+                              transition-all
+                              duration-300
+                            ">
                               →
                             </span>
-
                           </Link>
+                        ))}
 
-                        )
-                      )}
-
+                      </div>
                     </div>
+
                   </div>
-                </div>
+                )}
 
               </div>
 
             </div>
 
 
-            {/* LOGO */}
-
+            {/* CENTER — LOGO */}
             <Link
               href="/"
               className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center"
             >
 
               {settings.headerLogoEnabled !== false &&
-              logo ? (
+              currentLogo ? (
 
                 <img
-                  src={logo}
+                  src={currentLogo}
                   alt="Velsario"
                   style={{
-                    width: `${Math.min(
-                      logoWidth,
-                      220
-                    )}px`,
+                    width: `${currentLogoWidth}px`,
                   }}
-                  className="h-auto max-w-[42vw] object-contain transition-all duration-500"
+                  className="
+                    h-auto
+                    max-w-[42vw]
+                    object-contain
+                    transition-all
+                    duration-500
+                  "
                 />
 
               ) : (
@@ -261,42 +236,32 @@ export default function Navbar() {
             </Link>
 
 
-            {/* RIGHT */}
-
-            <div className="ml-auto flex items-center gap-4 md:gap-6">
+            {/* RIGHT — SEARCH + CART */}
+            <div className="flex items-center gap-4 md:gap-6 ml-auto">
 
               <button
-                onClick={() =>
-                  setSearchOpen(!searchOpen)
-                }
-                className={`${textColor} hover:opacity-60 transition-opacity`}
-                aria-label="Search"
+                onClick={() => setSearchOpen(!searchOpen)}
+                className={`${textColor} hover:opacity-60 transition-colors`}
               >
                 <Search size={18} />
               </button>
 
               <Link
                 href="/cart"
-                className={`${textColor} hover:opacity-60 transition-opacity relative`}
-                aria-label="Shopping cart"
+                className={`relative ${textColor} hover:opacity-60 transition-colors`}
               >
-
                 <ShoppingBag size={18} />
 
                 {itemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-v-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-v-black text-v-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-medium">
                     {itemCount}
                   </span>
                 )}
-
               </Link>
 
               <button
                 className={`md:hidden ${textColor}`}
-                onClick={() =>
-                  setMobileOpen(!mobileOpen)
-                }
-                aria-label="Menu"
+                onClick={() => setMobileOpen(!mobileOpen)}
               >
                 {mobileOpen ? (
                   <X size={20} />
@@ -308,22 +273,19 @@ export default function Navbar() {
             </div>
 
           </div>
-
         </div>
 
 
-        {/* SEARCH */}
-
+        {/* SEARCH BAR — KEEPING THE EXISTING EXTRA ROW */}
         {searchOpen && (
+          <div className="border-t border-v-border bg-v-white shadow-lg">
 
-          <div className="border-t border-v-border bg-white shadow-lg">
-
-            <div className="max-w-3xl mx-auto px-4 md:px-8 py-5">
+            <div className="max-w-2xl mx-auto px-4 md:px-8 py-4">
 
               <div className="flex items-center gap-4">
 
                 <Search
-                  size={17}
+                  size={16}
                   className="text-v-gray flex-shrink-0"
                 />
 
@@ -331,86 +293,97 @@ export default function Navbar() {
                   type="text"
                   placeholder="Search products..."
                   value={searchQuery}
-                  onChange={e =>
-                    setSearchQuery(
-                      e.target.value
-                    )
+                  onChange={(e) =>
+                    setSearchQuery(e.target.value)
                   }
-                  className="flex-1 bg-transparent outline-none text-sm"
+                  className="
+                    flex-1
+                    bg-transparent
+                    border-none
+                    outline-none
+                    text-sm
+                    tracking-wide
+                  "
                   autoFocus
                 />
 
                 <button
-                  onClick={() =>
-                    setSearchOpen(false)
-                  }
-                  className="text-v-gray hover:text-black"
+                  onClick={() => setSearchOpen(false)}
                 >
-                  <X size={16} />
+                  <X
+                    size={16}
+                    className="text-v-gray"
+                  />
                 </button>
 
               </div>
 
+              {/* Search suggestion area */}
               {searchQuery.trim() && (
-                <div className="mt-4 border-t border-v-border pt-4 text-xs text-v-gray">
-                  Searching for:
-                  <span className="text-black ml-2">
+                <div className="mt-4 pt-4 border-t border-v-border">
+
+                  <p className="text-[10px] tracking-widest uppercase text-v-gray mb-3">
+                    Search suggestions
+                  </p>
+
+                  <div className="text-sm text-v-black">
                     {searchQuery}
-                  </span>
+                  </div>
+
                 </div>
               )}
 
             </div>
 
           </div>
-
         )}
 
       </nav>
 
 
       {/* MOBILE MENU */}
-
       {mobileOpen && (
+        <div className="fixed inset-0 z-40 bg-v-white pt-20 overflow-y-auto">
 
-        <div className="fixed inset-0 z-40 bg-white pt-20 overflow-y-auto">
+          <div className="px-8 py-8">
 
-          <div className="px-6 py-8">
+            <div>
 
-            <p className="section-label mb-4">
-              Catalog
-            </p>
+              <p className="section-label mb-4">
+                Catalog
+              </p>
 
-            <div className="border-t border-v-border">
-
-              {navCategories.map(
-                cat => (
-
-                  <Link
-                    key={cat.slug}
-                    href={`/shop?category=${cat.slug}`}
-                    className="flex items-center justify-between py-4 text-sm tracking-wider uppercase border-b border-v-border"
-                    onClick={() =>
-                      setMobileOpen(false)
-                    }
-                  >
-                    {cat.name}
-                    <span>→</span>
-                  </Link>
-
-                )
-              )}
+              {navCategories.map((cat) => (
+                <Link
+                  key={cat.slug}
+                  href={`/shop?category=${cat.slug}`}
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    py-3
+                    text-sm
+                    tracking-wider
+                    uppercase
+                    border-b
+                    border-v-border
+                    text-v-black
+                  "
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {cat.name}
+                  <span>→</span>
+                </Link>
+              ))}
 
             </div>
 
-            <div className="flex flex-col gap-5 pt-8">
+            <div className="flex flex-col gap-4 pt-8">
 
               <Link
                 href="/shop"
                 className="nav-link"
-                onClick={() =>
-                  setMobileOpen(false)
-                }
+                onClick={() => setMobileOpen(false)}
               >
                 Shop All
               </Link>
@@ -418,9 +391,7 @@ export default function Navbar() {
               <Link
                 href="/about"
                 className="nav-link"
-                onClick={() =>
-                  setMobileOpen(false)
-                }
+                onClick={() => setMobileOpen(false)}
               >
                 About
               </Link>
@@ -428,9 +399,7 @@ export default function Navbar() {
               <Link
                 href="/contact"
                 className="nav-link"
-                onClick={() =>
-                  setMobileOpen(false)
-                }
+                onClick={() => setMobileOpen(false)}
               >
                 Contact
               </Link>
@@ -440,9 +409,7 @@ export default function Navbar() {
           </div>
 
         </div>
-
       )}
-
     </>
   )
 }
