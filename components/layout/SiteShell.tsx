@@ -16,41 +16,72 @@ export default function SiteShell({
     pathname === '/admin' ||
     pathname.startsWith('/admin/')
 
-  /* Dynamic Favicon */
   useEffect(() => {
-    try {
-      const saved =
-        localStorage.getItem('velsario-settings')
 
-      if (!saved) return
+    const applyFavicon = () => {
 
-      const settings = JSON.parse(saved)
+      try {
 
-      if (settings.favicon) {
-
-        let favicon =
-          document.querySelector(
-            'link[rel="icon"]'
-          ) as HTMLLinkElement | null
-
-        if (!favicon) {
-          favicon =
-            document.createElement('link')
-
-          favicon.rel = 'icon'
-
-          document.head.appendChild(
-            favicon
+        const saved =
+          localStorage.getItem(
+            'velsario-settings'
           )
-        }
 
-        favicon.href = settings.favicon
+        if (!saved) return
 
-      }
+        const settings =
+          JSON.parse(saved)
 
-    } catch {
-      // Keep default favicon if settings cannot be loaded
+        if (!settings.favicon) return
+
+        const size =
+          Number(
+            settings.faviconSize || 32
+          )
+
+        const existing =
+          document.querySelectorAll(
+            'link[rel="icon"], link[rel="shortcut icon"], link[data-velsario-favicon]'
+          )
+
+        existing.forEach(
+          element => element.remove()
+        )
+
+        const link =
+          document.createElement('link')
+
+        link.rel = 'icon'
+        link.type = 'image/png'
+        link.href = settings.favicon
+        link.setAttribute(
+          'data-velsario-favicon',
+          'true'
+        )
+
+        link.setAttribute(
+          'sizes',
+          `${size}x${size}`
+        )
+
+        document.head.appendChild(link)
+
+      } catch {}
+
     }
+
+    applyFavicon()
+
+    window.addEventListener(
+      'velsario-settings-updated',
+      applyFavicon
+    )
+
+    return () =>
+      window.removeEventListener(
+        'velsario-settings-updated',
+        applyFavicon
+      )
 
   }, [])
 
