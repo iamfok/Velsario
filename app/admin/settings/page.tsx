@@ -29,9 +29,18 @@ type Settings = {
   phone: string
   currency: string
 
-  headerLogo: string
+  headerLogoWhite: string
+  headerLogoBlack: string
   footerLogo: string
   favicon: string
+
+  headerLogoWhiteWidth: number
+  headerLogoWhiteHeight: number
+  headerLogoBlackWidth: number
+  headerLogoBlackHeight: number
+  footerLogoWidth: number
+  footerLogoHeight: number
+  faviconSize: number
 
   announcementEnabled: boolean
   announcementText: string
@@ -55,9 +64,21 @@ const defaultSettings: Settings = {
   phone: '',
   currency: 'BDT',
 
-  headerLogo: '',
+  headerLogoWhite: '',
+  headerLogoBlack: '',
   footerLogo: '',
   favicon: '',
+
+  headerLogoWhiteWidth: 150,
+  headerLogoWhiteHeight: 45,
+
+  headerLogoBlackWidth: 150,
+  headerLogoBlackHeight: 45,
+
+  footerLogoWidth: 190,
+  footerLogoHeight: 55,
+
+  faviconSize: 32,
 
   announcementEnabled: false,
   announcementText: '',
@@ -67,8 +88,10 @@ const defaultSettings: Settings = {
 
   footerEnabled: true,
   footerLogoEnabled: true,
+
   footerText:
     'Our journey began with a simple yet powerful vision — to redefine the way men & women experience fashion.',
+
   footerCopyright:
     '© 2026 VELSARIO | All Rights Reserved',
 
@@ -89,43 +112,32 @@ const socialPlatforms = [
 ]
 
 export default function SettingsPage() {
-
   const [settings, setSettings] =
     useState<Settings>(defaultSettings)
 
-  const [saved, setSaved] =
-    useState(false)
-
-  const [loaded, setLoaded] =
-    useState(false)
-
-
-  /* LOAD SETTINGS */
+  const [saved, setSaved] = useState(false)
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-
     try {
-
       const savedSettings =
-        localStorage.getItem(
-          'velsario-settings'
-        )
+        localStorage.getItem('velsario-settings')
 
       if (savedSettings) {
-
-        const parsed =
-          JSON.parse(savedSettings)
+        const parsed = JSON.parse(savedSettings)
 
         setSettings({
           ...defaultSettings,
           ...parsed,
 
-          /*
-           * Old settings compatibility
-           * If old "logo" exists, use it
-           * as the header logo.
-           */
-          headerLogo:
+          headerLogoWhite:
+            parsed.headerLogoWhite ||
+            parsed.headerLogo ||
+            parsed.logo ||
+            '',
+
+          headerLogoBlack:
+            parsed.headerLogoBlack ||
             parsed.headerLogo ||
             parsed.logo ||
             '',
@@ -140,101 +152,67 @@ export default function SettingsPage() {
               ? parsed.socialLinks
               : [],
         })
-
       }
-
     } catch {
-
       setSettings(defaultSettings)
-
     }
 
     setLoaded(true)
-
   }, [])
 
-
-  /* UPDATE SETTING */
-
-  const updateSetting = <
-    K extends keyof Settings
-  >(
+  const updateSetting = <K extends keyof Settings>(
     key: K,
     value: Settings[K]
   ) => {
-
     setSettings(prev => ({
       ...prev,
       [key]: value,
     }))
 
     setSaved(false)
-
   }
-
-
-  /* IMAGE UPLOAD */
 
   const handleImageUpload = (
     key:
-      | 'headerLogo'
+      | 'headerLogoWhite'
+      | 'headerLogoBlack'
       | 'footerLogo'
       | 'favicon',
-    file: File | undefined
+    file?: File
   ) => {
-
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-
-      alert('Please select an image file.')
-
+      alert('Please select a valid image file.')
       return
-
     }
 
     const reader = new FileReader()
 
     reader.onload = () => {
-
       updateSetting(
         key,
         reader.result as string
       )
-
     }
 
     reader.readAsDataURL(file)
-
   }
-
-
-  /* REMOVE IMAGE */
 
   const removeImage = (
     key:
-      | 'headerLogo'
+      | 'headerLogoWhite'
+      | 'headerLogoBlack'
       | 'footerLogo'
       | 'favicon'
   ) => {
-
     updateSetting(key, '')
-
   }
 
-
-  /* ADD SOCIAL */
-
   const addSocial = () => {
-
     if (settings.socialLinks.length >= 8) {
-
-      alert(
-        'You can add maximum 8 social media accounts.'
-      )
-
+      alert('You can add maximum 8 social media accounts.')
       return
-
     }
 
     const availablePlatform =
@@ -244,7 +222,7 @@ export default function SettingsPage() {
             social =>
               social.platform === platform
           )
-      ) || 'Custom'
+      ) || 'Facebook'
 
     const newSocial: SocialLink = {
       id: Date.now().toString(),
@@ -260,18 +238,13 @@ export default function SettingsPage() {
         newSocial,
       ]
     )
-
   }
-
-
-  /* UPDATE SOCIAL */
 
   const updateSocial = (
     id: string,
     key: keyof SocialLink,
     value: string | boolean
   ) => {
-
     updateSetting(
       'socialLinks',
       settings.socialLinks.map(
@@ -284,32 +257,19 @@ export default function SettingsPage() {
             : social
       )
     )
-
   }
 
-
-  /* DELETE SOCIAL */
-
-  const deleteSocial = (
-    id: string
-  ) => {
-
+  const deleteSocial = (id: string) => {
     updateSetting(
       'socialLinks',
       settings.socialLinks.filter(
         social => social.id !== id
       )
     )
-
   }
 
-
-  /* SAVE */
-
   const handleSave = () => {
-
     try {
-
       localStorage.setItem(
         'velsario-settings',
         JSON.stringify(settings)
@@ -317,50 +277,38 @@ export default function SettingsPage() {
 
       setSaved(true)
 
+      window.dispatchEvent(
+        new Event('velsario-settings-updated')
+      )
+
       setTimeout(() => {
         setSaved(false)
       }, 2500)
-
     } catch {
-
       alert(
-        'Unable to save settings.'
+        'Unable to save settings. Your uploaded files may be too large.'
       )
-
     }
-
   }
 
-
   if (!loaded) {
-
     return (
-
       <div className="max-w-5xl">
-
         <div className="bg-white border border-v-border p-10 text-center">
-
           <p className="text-sm text-v-gray">
             Loading settings...
           </p>
-
         </div>
-
       </div>
-
     )
-
   }
 
-
   return (
-
     <div className="max-w-5xl">
 
       {/* HEADER */}
 
       <div className="mb-8">
-
         <p className="text-xs tracking-widest uppercase text-v-gray mb-2">
           Configuration
         </p>
@@ -372,22 +320,19 @@ export default function SettingsPage() {
         <p className="text-sm text-v-gray mt-1">
           Manage your store, branding, header, footer and social media.
         </p>
-
       </div>
 
 
-      {/* STORE SETTINGS */}
+      {/* STORE */}
 
       <div className="bg-white border border-v-border p-6 md:p-8 mb-6">
 
         <div className="flex items-center gap-3 mb-6">
-
           <div className="w-9 h-9 bg-gray-100 flex items-center justify-center">
             <Store size={17} />
           </div>
 
           <div>
-
             <h2 className="text-sm font-medium">
               Store Settings
             </h2>
@@ -395,22 +340,17 @@ export default function SettingsPage() {
             <p className="text-xs text-v-gray mt-1">
               Basic information about your store.
             </p>
-
           </div>
-
         </div>
-
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
           <div>
-
             <label className="block text-xs tracking-wider mb-2">
               Store Name
             </label>
 
             <input
-              type="text"
               value={settings.storeName}
               onChange={e =>
                 updateSetting(
@@ -420,12 +360,9 @@ export default function SettingsPage() {
               }
               className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
             />
-
           </div>
 
-
           <div>
-
             <label className="block text-xs tracking-wider mb-2">
               Currency
             </label>
@@ -440,22 +377,12 @@ export default function SettingsPage() {
               }
               className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black bg-white"
             >
-
-              <option value="BDT">
-                BDT (৳)
-              </option>
-
-              <option value="USD">
-                USD ($)
-              </option>
-
+              <option value="BDT">BDT (৳)</option>
+              <option value="USD">USD ($)</option>
             </select>
-
           </div>
 
-
           <div>
-
             <label className="block text-xs tracking-wider mb-2">
               Store Email
             </label>
@@ -472,12 +399,9 @@ export default function SettingsPage() {
               placeholder="hello@velsario.com"
               className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
             />
-
           </div>
 
-
           <div>
-
             <label className="block text-xs tracking-wider mb-2">
               Store Phone
             </label>
@@ -494,11 +418,9 @@ export default function SettingsPage() {
               placeholder="+880..."
               className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
             />
-
           </div>
 
         </div>
-
       </div>
 
 
@@ -513,268 +435,156 @@ export default function SettingsPage() {
           </div>
 
           <div>
-
             <h2 className="text-sm font-medium">
-              Branding
+              Brand Assets
             </h2>
 
             <p className="text-xs text-v-gray mt-1">
-              Upload separate logos for your header and footer.
+              Manage separate logos and favicon.
             </p>
-
           </div>
 
         </div>
 
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
 
-          {/* HEADER LOGO */}
+          {/* WHITE LOGO */}
 
-          <div>
+          <BrandAsset
+            title="Header Logo — White"
+            value={settings.headerLogoWhite}
+            onRemove={() =>
+              removeImage('headerLogoWhite')
+            }
+            onUpload={file =>
+              handleImageUpload(
+                'headerLogoWhite',
+                file
+              )
+            }
+          />
 
-            <label className="block text-xs tracking-wider mb-3">
-              Header Logo
-            </label>
+          {/* BLACK LOGO */}
 
-            <div className="border border-dashed border-v-border p-5">
-
-              {settings.headerLogo ? (
-
-                <div>
-
-                  <div className="h-32 bg-gray-50 flex items-center justify-center overflow-hidden mb-4">
-
-                    <img
-                      src={settings.headerLogo}
-                      alt="Header logo"
-                      className="max-h-24 max-w-full object-contain"
-                    />
-
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeImage(
-                        'headerLogo'
-                      )
-                    }
-                    className="flex items-center gap-2 text-xs text-red-500"
-                  >
-
-                    <X size={13} />
-
-                    Remove Header Logo
-
-                  </button>
-
-                </div>
-
-              ) : (
-
-                <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
-
-                  <Upload
-                    size={20}
-                    className="text-gray-400 mb-3"
-                  />
-
-                  <span className="text-xs font-medium">
-                    Upload Header Logo
-                  </span>
-
-                  <span className="text-xs text-gray-400 mt-1">
-                    PNG, JPG, WEBP
-                  </span>
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={e =>
-                      handleImageUpload(
-                        'headerLogo',
-                        e.target.files?.[0]
-                      )
-                    }
-                  />
-
-                </label>
-
-              )}
-
-            </div>
-
-          </div>
-
+          <BrandAsset
+            title="Header Logo — Black"
+            value={settings.headerLogoBlack}
+            onRemove={() =>
+              removeImage('headerLogoBlack')
+            }
+            onUpload={file =>
+              handleImageUpload(
+                'headerLogoBlack',
+                file
+              )
+            }
+          />
 
           {/* FOOTER LOGO */}
 
-          <div>
-
-            <label className="block text-xs tracking-wider mb-3">
-              Footer Logo
-            </label>
-
-            <div className="border border-dashed border-v-border p-5">
-
-              {settings.footerLogo ? (
-
-                <div>
-
-                  <div className="h-32 bg-gray-50 flex items-center justify-center overflow-hidden mb-4">
-
-                    <img
-                      src={settings.footerLogo}
-                      alt="Footer logo"
-                      className="max-h-24 max-w-full object-contain"
-                    />
-
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeImage(
-                        'footerLogo'
-                      )
-                    }
-                    className="flex items-center gap-2 text-xs text-red-500"
-                  >
-
-                    <X size={13} />
-
-                    Remove Footer Logo
-
-                  </button>
-
-                </div>
-
-              ) : (
-
-                <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
-
-                  <Upload
-                    size={20}
-                    className="text-gray-400 mb-3"
-                  />
-
-                  <span className="text-xs font-medium">
-                    Upload Footer Logo
-                  </span>
-
-                  <span className="text-xs text-gray-400 mt-1">
-                    PNG, JPG, WEBP
-                  </span>
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={e =>
-                      handleImageUpload(
-                        'footerLogo',
-                        e.target.files?.[0]
-                      )
-                    }
-                  />
-
-                </label>
-
-              )}
-
-            </div>
-
-          </div>
-
+          <BrandAsset
+            title="Footer Logo"
+            value={settings.footerLogo}
+            onRemove={() =>
+              removeImage('footerLogo')
+            }
+            onUpload={file =>
+              handleImageUpload(
+                'footerLogo',
+                file
+              )
+            }
+          />
 
           {/* FAVICON */}
 
-          <div className="md:col-span-2">
+          <BrandAsset
+            title="Favicon"
+            value={settings.favicon}
+            onRemove={() =>
+              removeImage('favicon')
+            }
+            onUpload={file =>
+              handleImageUpload(
+                'favicon',
+                file
+              )
+            }
+            favicon
+          />
 
-            <label className="block text-xs tracking-wider mb-3">
-              Favicon
-            </label>
+        </div>
 
-            <div className="border border-dashed border-v-border p-5 max-w-md">
 
-              {settings.favicon ? (
+        {/* SIZE SETTINGS */}
 
-                <div>
+        <div className="border-t border-v-border mt-8 pt-8">
 
-                  <div className="h-28 bg-gray-50 flex items-center justify-center overflow-hidden mb-4">
+          <p className="text-xs tracking-widest uppercase font-medium mb-5">
+            Asset Size
+          </p>
 
-                    <img
-                      src={settings.favicon}
-                      alt="Favicon"
-                      className="w-16 h-16 object-contain"
-                    />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-                  </div>
+            <SizeInput
+              label="White Logo Width"
+              value={settings.headerLogoWhiteWidth}
+              onChange={value =>
+                updateSetting(
+                  'headerLogoWhiteWidth',
+                  value
+                )
+              }
+            />
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeImage(
-                        'favicon'
-                      )
-                    }
-                    className="flex items-center gap-2 text-xs text-red-500"
-                  >
+            <SizeInput
+              label="Black Logo Width"
+              value={settings.headerLogoBlackWidth}
+              onChange={value =>
+                updateSetting(
+                  'headerLogoBlackWidth',
+                  value
+                )
+              }
+            />
 
-                    <X size={13} />
+            <SizeInput
+              label="Footer Logo Width"
+              value={settings.footerLogoWidth}
+              onChange={value =>
+                updateSetting(
+                  'footerLogoWidth',
+                  value
+                )
+              }
+            />
 
-                    Remove Favicon
-
-                  </button>
-
-                </div>
-
-              ) : (
-
-                <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
-
-                  <Upload
-                    size={20}
-                    className="text-gray-400 mb-3"
-                  />
-
-                  <span className="text-xs font-medium">
-                    Upload Favicon
-                  </span>
-
-                  <span className="text-xs text-gray-400 mt-1">
-                    PNG, ICO, JPG
-                  </span>
-
-                  <input
-                    type="file"
-                    accept="image/*,.ico"
-                    className="hidden"
-                    onChange={e =>
-                      handleImageUpload(
-                        'favicon',
-                        e.target.files?.[0]
-                      )
-                    }
-                  />
-
-                </label>
-
-              )}
-
-            </div>
+            <SizeInput
+              label="Favicon Size"
+              value={settings.faviconSize}
+              onChange={value =>
+                updateSetting(
+                  'faviconSize',
+                  value
+                )
+              }
+            />
 
           </div>
+
+          <p className="text-[11px] text-gray-400 mt-4">
+            Logo height automatically preserves the original image ratio.
+            Favicon uses the selected pixel size.
+          </p>
 
         </div>
 
       </div>
 
 
-      {/* HEADER SETTINGS */}
+      {/* HEADER */}
 
       <div className="bg-white border border-v-border p-6 md:p-8 mb-6">
 
@@ -785,7 +595,6 @@ export default function SettingsPage() {
           </div>
 
           <div>
-
             <h2 className="text-sm font-medium">
               Header
             </h2>
@@ -793,121 +602,52 @@ export default function SettingsPage() {
             <p className="text-xs text-v-gray mt-1">
               Control your website header.
             </p>
-
           </div>
 
         </div>
 
-
         <div className="space-y-5">
 
+          <Toggle
+            title="Show Header"
+            description="Show or hide the main website header."
+            checked={settings.headerEnabled}
+            onChange={value =>
+              updateSetting(
+                'headerEnabled',
+                value
+              )
+            }
+          />
 
-          {/* SHOW HEADER */}
-
-          <label className="flex items-center justify-between gap-4 cursor-pointer">
-
-            <div>
-
-              <p className="text-sm font-medium">
-                Show Header
-              </p>
-
-              <p className="text-xs text-v-gray mt-1">
-                Show or hide the main website header.
-              </p>
-
-            </div>
-
-            <input
-              type="checkbox"
-              checked={
-                settings.headerEnabled
-              }
-              onChange={e =>
-                updateSetting(
-                  'headerEnabled',
-                  e.target.checked
-                )
-              }
-              className="w-4 h-4"
-            />
-
-          </label>
-
-
-          {/* SHOW LOGO */}
-
-          <label className="flex items-center justify-between gap-4 cursor-pointer">
-
-            <div>
-
-              <p className="text-sm font-medium">
-                Show Header Logo
-              </p>
-
-              <p className="text-xs text-v-gray mt-1">
-                Display the uploaded header logo.
-              </p>
-
-            </div>
-
-            <input
-              type="checkbox"
-              checked={
-                settings.headerLogoEnabled
-              }
-              onChange={e =>
-                updateSetting(
-                  'headerLogoEnabled',
-                  e.target.checked
-                )
-              }
-              className="w-4 h-4"
-            />
-
-          </label>
-
-
-          {/* ANNOUNCEMENT */}
+          <Toggle
+            title="Show Header Logo"
+            description="Display the uploaded header logos."
+            checked={settings.headerLogoEnabled}
+            onChange={value =>
+              updateSetting(
+                'headerLogoEnabled',
+                value
+              )
+            }
+          />
 
           <div className="border-t border-v-border pt-5">
 
-            <label className="flex items-center justify-between gap-4 cursor-pointer mb-4">
-
-              <div>
-
-                <p className="text-sm font-medium">
-                  Announcement Bar
-                </p>
-
-                <p className="text-xs text-v-gray mt-1">
-                  Show a promotional message above the header.
-                </p>
-
-              </div>
-
-              <input
-                type="checkbox"
-                checked={
-                  settings.announcementEnabled
-                }
-                onChange={e =>
-                  updateSetting(
-                    'announcementEnabled',
-                    e.target.checked
-                  )
-                }
-                className="w-4 h-4"
-              />
-
-            </label>
-
+            <Toggle
+              title="Announcement Bar"
+              description="Show a promotional message above the header."
+              checked={settings.announcementEnabled}
+              onChange={value =>
+                updateSetting(
+                  'announcementEnabled',
+                  value
+                )
+              }
+            />
 
             <input
-              type="text"
-              value={
-                settings.announcementText
-              }
+              value={settings.announcementText}
               onChange={e =>
                 updateSetting(
                   'announcementText',
@@ -915,17 +655,16 @@ export default function SettingsPage() {
                 )
               }
               placeholder="Free delivery inside Dhaka"
-              className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
+              className="w-full mt-4 border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
             />
 
           </div>
 
         </div>
-
       </div>
 
 
-      {/* FOOTER SETTINGS */}
+      {/* FOOTER */}
 
       <div className="bg-white border border-v-border p-6 md:p-8 mb-6">
 
@@ -936,7 +675,6 @@ export default function SettingsPage() {
           </div>
 
           <div>
-
             <h2 className="text-sm font-medium">
               Footer
             </h2>
@@ -944,120 +682,61 @@ export default function SettingsPage() {
             <p className="text-xs text-v-gray mt-1">
               Manage footer content and visibility.
             </p>
-
           </div>
 
         </div>
 
-
         <div className="space-y-6">
 
+          <Toggle
+            title="Show Footer"
+            description="Show or hide the website footer."
+            checked={settings.footerEnabled}
+            onChange={value =>
+              updateSetting(
+                'footerEnabled',
+                value
+              )
+            }
+          />
 
-          {/* SHOW FOOTER */}
-
-          <label className="flex items-center justify-between gap-4 cursor-pointer">
-
-            <div>
-
-              <p className="text-sm font-medium">
-                Show Footer
-              </p>
-
-              <p className="text-xs text-v-gray mt-1">
-                Show or hide the website footer.
-              </p>
-
-            </div>
-
-            <input
-              type="checkbox"
-              checked={
-                settings.footerEnabled
-              }
-              onChange={e =>
-                updateSetting(
-                  'footerEnabled',
-                  e.target.checked
-                )
-              }
-              className="w-4 h-4"
-            />
-
-          </label>
-
-
-          {/* SHOW FOOTER LOGO */}
-
-          <label className="flex items-center justify-between gap-4 cursor-pointer">
-
-            <div>
-
-              <p className="text-sm font-medium">
-                Show Footer Logo
-              </p>
-
-              <p className="text-xs text-v-gray mt-1">
-                Display the uploaded footer logo.
-              </p>
-
-            </div>
-
-            <input
-              type="checkbox"
-              checked={
-                settings.footerLogoEnabled
-              }
-              onChange={e =>
-                updateSetting(
-                  'footerLogoEnabled',
-                  e.target.checked
-                )
-              }
-              className="w-4 h-4"
-            />
-
-          </label>
-
-
-          {/* FOOTER TEXT */}
+          <Toggle
+            title="Show Footer Logo"
+            description="Display the uploaded footer logo."
+            checked={settings.footerLogoEnabled}
+            onChange={value =>
+              updateSetting(
+                'footerLogoEnabled',
+                value
+              )
+            }
+          />
 
           <div>
-
             <label className="block text-xs tracking-wider mb-2">
-              Footer Text
+              Footer Description
             </label>
 
             <textarea
-              value={
-                settings.footerText
-              }
+              value={settings.footerText}
               onChange={e =>
                 updateSetting(
                   'footerText',
                   e.target.value
                 )
               }
-              placeholder="Minimal colors. Maximum impact."
               rows={3}
               className="w-full border border-v-border px-4 py-3 text-sm outline-none resize-none focus:border-black"
             />
-
           </div>
 
-
-          {/* COPYRIGHT */}
-
           <div>
-
             <label className="block text-xs tracking-wider mb-2">
               Copyright Text
             </label>
 
             <input
-              type="text"
-              value={
-                settings.footerCopyright
-              }
+              value={settings.footerCopyright}
               onChange={e =>
                 updateSetting(
                   'footerCopyright',
@@ -1066,11 +745,9 @@ export default function SettingsPage() {
               }
               className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
             />
-
           </div>
 
         </div>
-
       </div>
 
 
@@ -1078,61 +755,44 @@ export default function SettingsPage() {
 
       <div className="bg-white border border-v-border p-6 md:p-8 mb-6">
 
-        <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
 
           <div className="flex items-center gap-3">
 
             <div className="w-9 h-9 bg-gray-100 flex items-center justify-center">
-
               <MessageCircle size={17} />
-
             </div>
 
             <div>
-
               <h2 className="text-sm font-medium">
                 Social Media
               </h2>
 
               <p className="text-xs text-v-gray mt-1">
-                Add up to 8 social media profiles.
+                Add up to 8 profiles. Only active profiles appear on the website.
               </p>
-
             </div>
 
           </div>
 
-
           <button
             type="button"
             onClick={addSocial}
-            disabled={
-              settings.socialLinks.length >= 8
-            }
-            className="flex items-center gap-2 bg-v-black text-white px-4 py-2 text-xs tracking-wider disabled:opacity-40"
+            disabled={settings.socialLinks.length >= 8}
+            className="flex items-center justify-center gap-2 bg-v-black text-white px-4 py-2 text-xs tracking-wider disabled:opacity-40"
           >
-
             <Plus size={14} />
-
             Add Social
-
           </button>
 
         </div>
 
-
         {settings.socialLinks.length === 0 ? (
 
           <div className="border border-dashed border-v-border py-10 text-center">
-
             <p className="text-sm text-v-gray">
               No social media accounts added.
             </p>
-
-            <p className="text-xs text-gray-400 mt-2">
-              Click "Add Social" to add your first profile.
-            </p>
-
           </div>
 
         ) : (
@@ -1149,19 +809,13 @@ export default function SettingsPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-[180px_1fr_auto_auto] gap-3 items-end">
 
-
-                    {/* PLATFORM */}
-
                     <div>
-
                       <label className="block text-xs text-v-gray mb-2">
                         Platform
                       </label>
 
                       <select
-                        value={
-                          social.platform
-                        }
+                        value={social.platform}
                         onChange={e =>
                           updateSocial(
                             social.id,
@@ -1169,45 +823,25 @@ export default function SettingsPage() {
                             e.target.value
                           )
                         }
-                        className="w-full border border-v-border px-3 py-3 text-sm outline-none bg-white focus:border-black"
+                        className="w-full border border-v-border px-3 py-3 text-sm outline-none bg-white"
                       >
 
                         {socialPlatforms.map(
                           platform => (
-
                             <option
                               key={platform}
                               value={platform}
                             >
                               {platform}
                             </option>
-
                           )
                         )}
 
-                        {!socialPlatforms.includes(
-                          social.platform
-                        ) && (
-
-                          <option
-                            value={
-                              social.platform
-                            }
-                          >
-                            {social.platform}
-                          </option>
-
-                        )}
-
                       </select>
-
                     </div>
 
 
-                    {/* URL */}
-
                     <div>
-
                       <label className="block text-xs text-v-gray mb-2">
                         Profile URL
                       </label>
@@ -1225,19 +859,13 @@ export default function SettingsPage() {
                         placeholder="https://..."
                         className="w-full border border-v-border px-3 py-3 text-sm outline-none focus:border-black"
                       />
-
                     </div>
 
 
-                    {/* ENABLE */}
-
                     <label className="flex items-center gap-2 h-11 px-3 border border-v-border cursor-pointer">
-
                       <input
                         type="checkbox"
-                        checked={
-                          social.enabled
-                        }
+                        checked={social.enabled}
                         onChange={e =>
                           updateSocial(
                             social.id,
@@ -1251,11 +879,8 @@ export default function SettingsPage() {
                       <span className="text-xs">
                         Active
                       </span>
-
                     </label>
 
-
-                    {/* DELETE */}
 
                     <button
                       type="button"
@@ -1265,27 +890,21 @@ export default function SettingsPage() {
                         )
                       }
                       className="h-11 w-11 border border-v-border flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-red-50"
-                      title="Remove social"
                     >
-
                       <Trash2 size={15} />
-
                     </button>
 
                   </div>
-
 
                   <p className="text-[11px] text-gray-400 mt-3">
                     Social #{index + 1}
                   </p>
 
                 </div>
-
               )
             )}
 
           </div>
-
         )}
 
       </div>
@@ -1302,7 +921,6 @@ export default function SettingsPage() {
           </div>
 
           <div>
-
             <h2 className="text-sm font-medium">
               Notifications
             </h2>
@@ -1310,41 +928,21 @@ export default function SettingsPage() {
             <p className="text-xs text-v-gray mt-1">
               Manage store notification preferences.
             </p>
-
           </div>
 
         </div>
 
-
-        <label className="flex items-center justify-between gap-4 cursor-pointer">
-
-          <div>
-
-            <p className="text-sm font-medium">
-              New Order Notifications
-            </p>
-
-            <p className="text-xs text-v-gray mt-1">
-              Receive notifications when a new order is placed.
-            </p>
-
-          </div>
-
-          <input
-            type="checkbox"
-            checked={
-              settings.orderNotifications
-            }
-            onChange={e =>
-              updateSetting(
-                'orderNotifications',
-                e.target.checked
-              )
-            }
-            className="w-4 h-4"
-          />
-
-        </label>
+        <Toggle
+          title="New Order Notifications"
+          description="Receive notifications when a new order is placed."
+          checked={settings.orderNotifications}
+          onChange={value =>
+            updateSetting(
+              'orderNotifications',
+              value
+            )
+          }
+        />
 
       </div>
 
@@ -1360,7 +958,6 @@ export default function SettingsPage() {
           </div>
 
           <div>
-
             <h2 className="text-sm font-medium">
               Security
             </h2>
@@ -1368,20 +965,16 @@ export default function SettingsPage() {
             <p className="text-xs text-v-gray mt-1">
               Authentication will be connected later.
             </p>
-
           </div>
 
         </div>
 
-
         <div className="p-4 bg-gray-50 border border-gray-100">
-
           <p className="text-xs text-gray-500">
             Authentication, admin access levels and password
             management will be connected with the database
             and authentication system later.
           </p>
-
         </div>
 
       </div>
@@ -1389,31 +982,196 @@ export default function SettingsPage() {
 
       {/* SAVE */}
 
-      <div className="flex items-center justify-end gap-4 pb-10">
+      <div className="flex flex-col sm:flex-row items-center justify-end gap-4 pb-10">
 
         {saved && (
-
           <span className="text-xs text-green-600">
             Settings saved successfully
           </span>
-
         )}
 
         <button
           type="button"
           onClick={handleSave}
-          className="flex items-center gap-2 bg-v-black text-white px-6 py-3 text-xs tracking-wider hover:opacity-90"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-v-black text-white px-6 py-3 text-xs tracking-wider hover:opacity-90"
         >
-
           <Save size={15} />
-
           Save Settings
-
         </button>
 
       </div>
 
     </div>
+  )
+}
 
+
+/* =========================================================
+   COMPONENTS
+========================================================= */
+
+function Toggle({
+  title,
+  description,
+  checked,
+  onChange,
+}: {
+  title: string
+  description: string
+  checked: boolean
+  onChange: (value: boolean) => void
+}) {
+  return (
+    <label className="flex items-center justify-between gap-4 cursor-pointer">
+      <div>
+        <p className="text-sm font-medium">
+          {title}
+        </p>
+
+        <p className="text-xs text-v-gray mt-1">
+          {description}
+        </p>
+      </div>
+
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={e =>
+          onChange(e.target.checked)
+        }
+        className="w-4 h-4 flex-shrink-0"
+      />
+    </label>
+  )
+}
+
+
+function SizeInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: number
+  onChange: (value: number) => void
+}) {
+  return (
+    <div>
+      <label className="block text-xs text-v-gray mb-2">
+        {label}
+      </label>
+
+      <div className="flex items-center border border-v-border">
+        <input
+          type="number"
+          min={10}
+          max={600}
+          value={value}
+          onChange={e =>
+            onChange(
+              Math.max(
+                10,
+                Number(e.target.value)
+              )
+            )
+          }
+          className="w-full px-3 py-3 text-sm outline-none"
+        />
+
+        <span className="px-3 text-xs text-gray-400">
+          px
+        </span>
+      </div>
+    </div>
+  )
+}
+
+
+function BrandAsset({
+  title,
+  value,
+  onUpload,
+  onRemove,
+  favicon = false,
+}: {
+  title: string
+  value: string
+  onUpload: (file?: File) => void
+  onRemove: () => void
+  favicon?: boolean
+}) {
+  return (
+    <div>
+
+      <label className="block text-xs tracking-wider mb-3">
+        {title}
+      </label>
+
+      <div className="border border-dashed border-v-border p-5">
+
+        {value ? (
+
+          <div>
+
+            <div className="h-32 bg-gray-50 flex items-center justify-center overflow-hidden mb-4">
+
+              <img
+                src={value}
+                alt={title}
+                className={
+                  favicon
+                    ? 'w-16 h-16 object-contain'
+                    : 'max-h-24 max-w-full object-contain'
+                }
+              />
+
+            </div>
+
+            <button
+              type="button"
+              onClick={onRemove}
+              className="flex items-center gap-2 text-xs text-red-500"
+            >
+              <X size={13} />
+              Remove
+            </button>
+
+          </div>
+
+        ) : (
+
+          <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
+
+            <Upload
+              size={20}
+              className="text-gray-400 mb-3"
+            />
+
+            <span className="text-xs font-medium">
+              Upload {title}
+            </span>
+
+            <span className="text-xs text-gray-400 mt-1">
+              PNG, JPG, WEBP
+            </span>
+
+            <input
+              type="file"
+              accept="image/*,.ico"
+              className="hidden"
+              onChange={e =>
+                onUpload(
+                  e.target.files?.[0]
+                )
+              }
+            />
+
+          </label>
+
+        )}
+
+      </div>
+
+    </div>
   )
 }
