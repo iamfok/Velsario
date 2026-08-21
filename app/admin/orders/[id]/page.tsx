@@ -8,40 +8,213 @@ import {
   Mail,
   Save,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-export default function OrderDetailsPage() {
-  const [orderStatus, setOrderStatus] = useState('Pending')
-  const [paymentStatus, setPaymentStatus] = useState('Pending')
+type Order = {
+  id: string
+  date: string
+  customer: string
+  phone: string
+  email: string
+  product: string
+  sku: string
+  quantity: number
+  price: number
+  subtotal: number
+  shipping: number
+  total: number
+  paid: number
+  due: number
+  paymentMethod: string
+  paymentStatus: string
+  status: string
+  city: string
+  country: string
+}
 
-  const order = {
-    id: 'SK-602371',
-    date: '21 Aug 2026',
-    customer: 'iamskkamalh',
-    phone: '013229120967',
-    email: 'email@example.com',
-    product: 'New Cross Style Handbag',
-    sku: 'SK320251000049',
-    quantity: 3,
-    price: 700,
-    subtotal: 2100,
-    shipping: 60,
-    total: 2160,
-    paid: 0,
-    due: 2160,
-    paymentMethod: 'COD',
-    city: 'Dhaka',
-    country: 'Bangladesh',
-  }
+const defaultOrder: Order = {
+  id: 'SK-602371',
+  date: '21 Aug 2026',
+  customer: 'iamskkamalh',
+  phone: '013229120967',
+  email: 'email@example.com',
+  product: 'New Cross Style Handbag',
+  sku: 'SK320251000049',
+  quantity: 3,
+  price: 700,
+  subtotal: 2100,
+  shipping: 60,
+  total: 2160,
+  paid: 0,
+  due: 2160,
+  paymentMethod: 'COD',
+  paymentStatus: 'Pending',
+  status: 'Pending',
+  city: 'Dhaka',
+  country: 'Bangladesh',
+}
+
+export default function OrderDetailsPage({
+  params,
+}: {
+  params: { id: string }
+}) {
+
+  const [order, setOrder] =
+    useState<Order | null>(null)
+
+  const [orderStatus, setOrderStatus] =
+    useState('Pending')
+
+  const [paymentStatus, setPaymentStatus] =
+    useState('Pending')
+
+  const [saving, setSaving] =
+    useState(false)
+
+  useEffect(() => {
+
+    const savedOrders =
+      localStorage.getItem('velsario-orders')
+
+    if (savedOrders) {
+
+      const orders: Order[] =
+        JSON.parse(savedOrders)
+
+      const found = orders.find(
+        item => item.id === params.id
+      )
+
+      if (found) {
+
+        setOrder(found)
+        setOrderStatus(
+          found.status || 'Pending'
+        )
+        setPaymentStatus(
+          found.paymentStatus || 'Pending'
+        )
+
+        return
+      }
+    }
+
+    // Demo order fallback
+    if (params.id === defaultOrder.id) {
+
+      setOrder(defaultOrder)
+      setOrderStatus(defaultOrder.status)
+      setPaymentStatus(
+        defaultOrder.paymentStatus
+      )
+
+    }
+
+  }, [params.id])
+
 
   const handleUpdate = () => {
-    alert('Order updated successfully.')
+
+    if (!order) return
+
+    setSaving(true)
+
+    const updatedOrder: Order = {
+      ...order,
+      status: orderStatus,
+      paymentStatus,
+    }
+
+    try {
+
+      const savedOrders =
+        localStorage.getItem(
+          'velsario-orders'
+        )
+
+      const orders: Order[] =
+        savedOrders
+          ? JSON.parse(savedOrders)
+          : []
+
+      const existingIndex =
+        orders.findIndex(
+          item => item.id === order.id
+        )
+
+      if (existingIndex >= 0) {
+
+        orders[existingIndex] =
+          updatedOrder
+
+      } else {
+
+        orders.push(updatedOrder)
+
+      }
+
+      localStorage.setItem(
+        'velsario-orders',
+        JSON.stringify(orders)
+      )
+
+      setOrder(updatedOrder)
+
+      alert(
+        'Order updated successfully.'
+      )
+
+    } catch {
+
+      alert(
+        'Unable to update order.'
+      )
+
+    } finally {
+
+      setSaving(false)
+
+    }
   }
 
+
+  if (!order) {
+
+    return (
+
+      <div className="max-w-6xl mx-auto">
+
+        <div className="bg-white border border-v-border text-center py-20">
+
+          <h2 className="text-lg font-medium">
+            Order not found
+          </h2>
+
+          <p className="text-sm text-v-gray mt-2">
+            This order does not exist.
+          </p>
+
+          <Link
+            href="/admin/orders"
+            className="inline-flex mt-6 bg-v-black text-white px-5 py-3 text-xs tracking-wider"
+          >
+            Back to Orders
+          </Link>
+
+        </div>
+
+      </div>
+    )
+  }
+
+
   return (
+
     <div className="max-w-6xl mx-auto">
 
       {/* HEADER */}
+
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
 
         <div className="flex items-center gap-4">
@@ -71,13 +244,32 @@ export default function OrderDetailsPage() {
 
         </div>
 
+
         <div className="flex items-center gap-2">
 
-          <span className="px-3 py-1 text-xs bg-yellow-50 text-yellow-600">
+          <span
+            className={`px-3 py-1 text-xs ${
+              orderStatus === 'Delivered'
+                ? 'bg-green-50 text-green-600'
+                : orderStatus === 'Cancelled'
+                  ? 'bg-red-50 text-red-500'
+                  : orderStatus === 'Processing'
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'bg-yellow-50 text-yellow-600'
+            }`}
+          >
             {orderStatus}
           </span>
 
-          <span className="px-3 py-1 text-xs bg-red-50 text-red-500">
+          <span
+            className={`px-3 py-1 text-xs ${
+              paymentStatus === 'Paid'
+                ? 'bg-green-50 text-green-600'
+                : paymentStatus === 'Failed'
+                  ? 'bg-red-50 text-red-500'
+                  : 'bg-yellow-50 text-yellow-600'
+            }`}
+          >
             Payment {paymentStatus}
           </span>
 
@@ -85,12 +277,17 @@ export default function OrderDetailsPage() {
 
       </div>
 
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
+
         {/* LEFT */}
+
         <div className="lg:col-span-2 space-y-6">
 
+
           {/* ITEMS */}
+
           <div className="bg-white border border-v-border p-6">
 
             <h2 className="text-xs tracking-widest uppercase font-medium mb-5">
@@ -114,7 +311,8 @@ export default function OrderDetailsPage() {
               <div className="text-right">
 
                 <p className="text-sm">
-                  ৳{order.price.toLocaleString()} × {order.quantity}
+                  ৳{order.price.toLocaleString()} ×{' '}
+                  {order.quantity}
                 </p>
 
                 <p className="text-sm font-medium mt-1">
@@ -127,7 +325,9 @@ export default function OrderDetailsPage() {
 
           </div>
 
+
           {/* PAYMENT SUMMARY */}
+
           <div className="bg-white border border-v-border p-6">
 
             <h2 className="text-xs tracking-widest uppercase font-medium mb-5">
@@ -137,35 +337,68 @@ export default function OrderDetailsPage() {
             <div className="space-y-3 text-sm">
 
               <div className="flex justify-between">
-                <span className="text-v-gray">Subtotal</span>
-                <span>৳{order.subtotal.toLocaleString()}</span>
+                <span className="text-v-gray">
+                  Subtotal
+                </span>
+
+                <span>
+                  ৳{order.subtotal.toLocaleString()}
+                </span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-v-gray">Shipping</span>
-                <span>৳{order.shipping}</span>
+                <span className="text-v-gray">
+                  Shipping
+                </span>
+
+                <span>
+                  ৳{order.shipping.toLocaleString()}
+                </span>
               </div>
 
               <div className="border-t border-v-border pt-3 flex justify-between font-medium">
-                <span>Grand Total</span>
-                <span>৳{order.total.toLocaleString()}</span>
+
+                <span>
+                  Grand Total
+                </span>
+
+                <span>
+                  ৳{order.total.toLocaleString()}
+                </span>
+
               </div>
 
               <div className="flex justify-between text-green-600">
-                <span>Amount Paid</span>
-                <span>৳{order.paid.toLocaleString()}</span>
+
+                <span>
+                  Amount Paid
+                </span>
+
+                <span>
+                  ৳{order.paid.toLocaleString()}
+                </span>
+
               </div>
 
               <div className="flex justify-between text-red-500">
-                <span>Amount Due</span>
-                <span>৳{order.due.toLocaleString()}</span>
+
+                <span>
+                  Amount Due
+                </span>
+
+                <span>
+                  ৳{order.due.toLocaleString()}
+                </span>
+
               </div>
 
             </div>
 
           </div>
 
+
           {/* FULFILLMENT */}
+
           <div className="bg-white border border-v-border p-6">
 
             <h2 className="text-xs tracking-widest uppercase font-medium mb-5">
@@ -173,6 +406,9 @@ export default function OrderDetailsPage() {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
+              {/* ORDER STATUS */}
 
               <div>
 
@@ -182,17 +418,40 @@ export default function OrderDetailsPage() {
 
                 <select
                   value={orderStatus}
-                  onChange={(e) => setOrderStatus(e.target.value)}
+                  onChange={e =>
+                    setOrderStatus(
+                      e.target.value
+                    )
+                  }
                   className="w-full border border-v-border px-4 py-3 text-sm outline-none bg-white"
                 >
-                  <option>Pending</option>
-                  <option>Processing</option>
-                  <option>Shipped</option>
-                  <option>Delivered</option>
-                  <option>Cancelled</option>
+
+                  <option>
+                    Pending
+                  </option>
+
+                  <option>
+                    Processing
+                  </option>
+
+                  <option>
+                    Shipped
+                  </option>
+
+                  <option>
+                    Delivered
+                  </option>
+
+                  <option>
+                    Cancelled
+                  </option>
+
                 </select>
 
               </div>
+
+
+              {/* PAYMENT METHOD */}
 
               <div>
 
@@ -206,6 +465,9 @@ export default function OrderDetailsPage() {
 
               </div>
 
+
+              {/* PAYMENT STATUS */}
+
               <div>
 
                 <label className="block text-xs tracking-wider mb-2">
@@ -214,28 +476,57 @@ export default function OrderDetailsPage() {
 
                 <select
                   value={paymentStatus}
-                  onChange={(e) => setPaymentStatus(e.target.value)}
+                  onChange={e =>
+                    setPaymentStatus(
+                      e.target.value
+                    )
+                  }
                   className="w-full border border-v-border px-4 py-3 text-sm outline-none bg-white"
                 >
-                  <option>Pending</option>
-                  <option>Paid</option>
-                  <option>Partial</option>
-                  <option>Failed</option>
-                  <option>Refunded</option>
+
+                  <option>
+                    Pending
+                  </option>
+
+                  <option>
+                    Paid
+                  </option>
+
+                  <option>
+                    Partial
+                  </option>
+
+                  <option>
+                    Failed
+                  </option>
+
+                  <option>
+                    Refunded
+                  </option>
+
                 </select>
 
               </div>
 
             </div>
 
+
+            {/* UPDATE */}
+
             <div className="flex justify-end mt-6 pt-5 border-t border-v-border">
 
               <button
                 onClick={handleUpdate}
-                className="flex items-center gap-2 bg-v-black text-white px-6 py-3 text-xs tracking-wider"
+                disabled={saving}
+                className="flex items-center gap-2 bg-v-black text-white px-6 py-3 text-xs tracking-wider disabled:opacity-50"
               >
+
                 <Save size={15} />
-                Update Order
+
+                {saving
+                  ? 'Updating...'
+                  : 'Update Order'}
+
               </button>
 
             </div>
@@ -244,10 +535,14 @@ export default function OrderDetailsPage() {
 
         </div>
 
+
         {/* RIGHT */}
+
         <div className="space-y-6">
 
+
           {/* CUSTOMER */}
+
           <div className="bg-white border border-v-border p-6">
 
             <h2 className="text-xs tracking-widest uppercase font-medium mb-5">
@@ -268,7 +563,9 @@ export default function OrderDetailsPage() {
 
           </div>
 
+
           {/* ADDRESS */}
+
           <div className="bg-white border border-v-border p-6">
 
             <h2 className="text-xs tracking-widest uppercase font-medium mb-5">
@@ -289,7 +586,9 @@ export default function OrderDetailsPage() {
 
           </div>
 
-          {/* INVOICE ACTIONS */}
+
+          {/* INVOICE */}
+
           <div className="bg-white border border-v-border p-6">
 
             <h2 className="text-xs tracking-widest uppercase font-medium mb-5">
@@ -298,28 +597,56 @@ export default function OrderDetailsPage() {
 
             <div className="space-y-2">
 
+
+              {/* PRINT */}
+
               <button
-                onClick={() => window.print()}
+                onClick={() =>
+                  window.print()
+                }
                 className="w-full flex items-center justify-center gap-2 border border-v-border px-4 py-3 text-xs tracking-wider hover:bg-gray-100"
               >
+
                 <Printer size={14} />
+
                 Print Invoice
+
               </button>
 
+
+              {/* GENERATE */}
+
               <button
-                onClick={() => alert('Invoice generated.')}
+                onClick={() =>
+                  alert(
+                    `Invoice ${order.id} generated successfully.`
+                  )
+                }
                 className="w-full flex items-center justify-center gap-2 border border-v-border px-4 py-3 text-xs tracking-wider hover:bg-gray-100"
               >
+
                 <FileText size={14} />
+
                 Generate Invoice
+
               </button>
 
+
+              {/* EMAIL */}
+
               <button
-                onClick={() => alert('Invoice email prepared.')}
+                onClick={() =>
+                  alert(
+                    `Invoice prepared for ${order.email}.`
+                  )
+                }
                 className="w-full flex items-center justify-center gap-2 bg-v-black text-white px-4 py-3 text-xs tracking-wider"
               >
+
                 <Mail size={14} />
+
                 Email Invoice
+
               </button>
 
             </div>
