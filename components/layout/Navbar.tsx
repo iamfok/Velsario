@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   Search,
@@ -8,12 +7,11 @@ import {
   Menu,
   X,
   ChevronDown,
-  ArrowRight,
 } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
-import { products, categories } from '@/lib/products'
+import { useEffect, useState } from 'react'
 
-const fallbackCategories = [
+const navCategories = [
   { name: 'Velsario Shirt', slug: 'velsario-shirt' },
   { name: 'Velsario Pants', slug: 'velsario-pants' },
   { name: 'Accessories', slug: 'accessories' },
@@ -21,495 +19,430 @@ const fallbackCategories = [
   { name: 'Activewear', slug: 'activewear' },
 ]
 
+type Settings = {
+  headerLogoWhite?: string
+  headerLogoBlack?: string
+  headerLogoEnabled?: boolean
+  headerEnabled?: boolean
+  headerLogoWhiteWidth?: number
+  headerLogoBlackWidth?: number
+}
+
+const defaultSettings: Settings = {
+  headerLogoWhite: '',
+  headerLogoBlack: '',
+  headerLogoEnabled: true,
+  headerEnabled: true,
+  headerLogoWhiteWidth: 150,
+  headerLogoBlackWidth: 150,
+}
+
 export default function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [catalogOpen, setCatalogOpen] = useState(false)
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const searchRef = useRef<HTMLDivElement>(null)
+  const [isScrolled, setIsScrolled] =
+    useState(false)
+
+  const [mobileOpen, setMobileOpen] =
+    useState(false)
+
+  const [catalogOpen, setCatalogOpen] =
+    useState(false)
+
+  const [searchOpen, setSearchOpen] =
+    useState(false)
+
+  const [searchQuery, setSearchQuery] =
+    useState('')
+
+  const [settings, setSettings] =
+    useState<Settings>(defaultSettings)
 
   const { itemCount } = useCart()
 
-  const navCategories = useMemo(() => {
-    if (categories && categories.length > 0) {
-      return categories.map((cat) => ({
-        name: cat.name,
-        slug: cat.slug,
-      }))
+  useEffect(() => {
+
+    const loadSettings = () => {
+      try {
+        const saved =
+          localStorage.getItem(
+            'velsario-settings'
+          )
+
+        if (saved) {
+          setSettings({
+            ...defaultSettings,
+            ...JSON.parse(saved),
+          })
+        }
+      } catch {}
     }
 
-    return fallbackCategories
+    loadSettings()
+
+    window.addEventListener(
+      'velsario-settings-updated',
+      loadSettings
+    )
+
+    return () => {
+      window.removeEventListener(
+        'velsario-settings-updated',
+        loadSettings
+      )
+    }
   }, [])
 
   useEffect(() => {
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 30)
+      setIsScrolled(
+        window.scrollY > 20
+      )
     }
+
+    window.addEventListener(
+      'scroll',
+      handleScroll
+    )
 
     handleScroll()
-    window.addEventListener('scroll', handleScroll, { passive: true })
 
-    return () => window.removeEventListener('scroll', handleScroll)
+    return () =>
+      window.removeEventListener(
+        'scroll',
+        handleScroll
+      )
   }, [])
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(event.target as Node)
-      ) {
-        setSearchOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [mobileOpen])
-
-  const normalizedSearch = searchQuery
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '')
-
-  const suggestions = useMemo(() => {
-    if (!normalizedSearch) return []
-
-    return products
-      .filter((product) => {
-        const searchable = [
-          product.name,
-          product.category,
-          product.subcategory,
-          ...(product.colors || []),
-        ]
-          .join(' ')
-          .toLowerCase()
-          .replace(/\s+/g, '')
-
-        return searchable.includes(normalizedSearch)
-      })
-      .slice(0, 5)
-  }, [normalizedSearch])
-
-  const closeMenus = () => {
-    setMobileOpen(false)
-    setCatalogOpen(false)
+  if (settings.headerEnabled === false) {
+    return null
   }
+
+  const logo =
+    isScrolled
+      ? settings.headerLogoBlack
+      : settings.headerLogoWhite
+
+  const logoWidth =
+    isScrolled
+      ? settings.headerLogoBlackWidth || 150
+      : settings.headerLogoWhiteWidth || 150
+
+  const textColor =
+    isScrolled
+      ? 'text-v-black'
+      : 'text-white'
 
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled
-            ? 'bg-v-white/95 text-v-black border-b border-v-border shadow-sm backdrop-blur-md'
-            : 'bg-transparent text-white'
+            ? 'bg-white/95 backdrop-blur-md border-b border-v-border shadow-sm'
+            : 'bg-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative h-16 md:h-20 flex items-center justify-between">
 
-            {/* LEFT — CATALOG */}
-            <div className="flex items-center">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
 
-              {/* Desktop */}
+          <div className="relative flex items-center justify-between h-16 md:h-20">
+
+            {/* LEFT */}
+
+            <div className="hidden md:flex items-center">
+
               <div
-                className="hidden md:block relative"
-                onMouseEnter={() => setCatalogOpen(true)}
-                onMouseLeave={() => setCatalogOpen(false)}
+                className="relative"
+                onMouseEnter={() =>
+                  setCatalogOpen(true)
+                }
+                onMouseLeave={() =>
+                  setCatalogOpen(false)
+                }
               >
+
                 <button
-                  type="button"
-                  onClick={() => setCatalogOpen((value) => !value)}
-                  className={`header-control group flex items-center gap-2 ${
-                    isScrolled ? 'header-dark' : 'header-light'
-                  }`}
-                  aria-expanded={catalogOpen}
+                  className={`flex items-center gap-1 text-xs tracking-widest uppercase font-medium transition-all duration-300 ${textColor}`}
                 >
-                  <span>Catalog</span>
+                  Catalog
 
                   <ChevronDown
-                    size={14}
+                    size={12}
                     className={`transition-transform duration-300 ${
-                      catalogOpen ? 'rotate-180' : ''
+                      catalogOpen
+                        ? 'rotate-180'
+                        : ''
                     }`}
                   />
                 </button>
 
-                {/* Desktop Mega Menu */}
+
+                {/* DROPDOWN */}
+
                 <div
-                  className={`absolute left-0 top-full pt-4 transition-all duration-300 ${
+                  className={`absolute top-full left-0 pt-5 transition-all duration-300 ${
                     catalogOpen
-                      ? 'opacity-100 visible translate-y-0'
-                      : 'opacity-0 invisible -translate-y-2 pointer-events-none'
+                      ? 'opacity-100 translate-y-0 pointer-events-auto'
+                      : 'opacity-0 -translate-y-2 pointer-events-none'
                   }`}
                 >
-                  <div className="catalog-menu w-[min(92vw,620px)] bg-v-white text-v-black border border-v-border shadow-2xl overflow-hidden">
 
-                    <div className="grid grid-cols-2">
+                  <div className="relative overflow-hidden min-w-[250px] bg-white/95 backdrop-blur-xl border border-v-border shadow-xl">
 
-                      <div className="p-6 md:p-8 bg-v-light">
-                        <p className="section-label mb-3">
-                          Collection
-                        </p>
+                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-gray-50 via-white to-gray-100" />
 
-                        <h3 className="font-display text-2xl md:text-3xl leading-tight">
-                          Define your
-                          <br />
-                          <em>presence.</em>
-                        </h3>
+                    <div className="relative py-3">
 
-                        <p className="text-xs text-v-gray leading-relaxed mt-4 max-w-xs">
-                          Explore the Velsario collection designed around
-                          precision, simplicity and timeless style.
-                        </p>
-                      </div>
+                      {navCategories.map(
+                        (cat, index) => (
 
-                      <div className="p-5 md:p-7">
-                        <p className="text-[10px] tracking-[0.22em] uppercase text-v-gray mb-3">
-                          Categories
-                        </p>
+                          <Link
+                            key={cat.slug}
+                            href={`/shop?category=${cat.slug}`}
+                            className="group flex items-center justify-between px-6 py-4 text-xs tracking-wider uppercase text-v-black hover:bg-black hover:text-white transition-all duration-300"
+                            onClick={() =>
+                              setCatalogOpen(false)
+                            }
+                          >
 
-                        <div className="flex flex-col">
-                          {navCategories.map((cat) => (
-                            <Link
-                              key={cat.slug}
-                              href={`/shop?category=${cat.slug}`}
-                              onClick={() => setCatalogOpen(false)}
-                              className="catalog-link"
-                            >
-                              <span>{cat.name}</span>
-                              <ArrowRight size={14} />
-                            </Link>
-                          ))}
-                        </div>
+                            <span>
+                              {cat.name}
+                            </span>
 
-                        <Link
-                          href="/shop"
-                          onClick={() => setCatalogOpen(false)}
-                          className="mt-5 pt-4 border-t border-v-border flex items-center justify-between text-xs tracking-widest uppercase font-medium hover:opacity-60 transition-opacity"
-                        >
-                          View All Products
-                          <ArrowRight size={14} />
-                        </Link>
-                      </div>
+                            <span className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                              →
+                            </span>
+
+                          </Link>
+
+                        )
+                      )}
 
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Mobile Catalog button */}
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileOpen(true)
-                  setCatalogOpen(true)
-                }}
-                className={`md:hidden header-control ${
-                  isScrolled ? 'header-dark' : 'header-light'
-                }`}
-              >
-                Catalog
-              </button>
+              </div>
 
             </div>
 
-            {/* CENTER — LOGO */}
+
+            {/* LOGO */}
+
             <Link
               href="/"
-              onClick={closeMenus}
-              className={`absolute left-1/2 -translate-x-1/2 z-10 transition-all duration-300 ${
-                isScrolled ? 'text-v-black' : 'text-white'
-              }`}
-              aria-label="Velsario Home"
+              className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center"
             >
-              <span className="font-display text-[clamp(1.25rem,3vw,1.7rem)] font-semibold tracking-[0.18em] whitespace-nowrap">
-                VELSARIO
-              </span>
+
+              {settings.headerLogoEnabled !== false &&
+              logo ? (
+
+                <img
+                  src={logo}
+                  alt="Velsario"
+                  style={{
+                    width: `${Math.min(
+                      logoWidth,
+                      220
+                    )}px`,
+                  }}
+                  className="h-auto max-w-[42vw] object-contain transition-all duration-500"
+                />
+
+              ) : (
+
+                <span
+                  className={`font-display text-xl md:text-2xl font-semibold tracking-widest transition-colors duration-500 ${textColor}`}
+                >
+                  VELSARIO
+                </span>
+
+              )}
+
             </Link>
 
+
             {/* RIGHT */}
-            <div className="flex items-center gap-2 sm:gap-4">
 
-              {/* Search */}
-              <div ref={searchRef} className="relative">
-                <button
-                  type="button"
-                  onClick={() => setSearchOpen((value) => !value)}
-                  className={`header-icon ${
-                    isScrolled ? 'header-dark' : 'header-light'
-                  }`}
-                  aria-label="Search"
-                  aria-expanded={searchOpen}
-                >
-                  {searchOpen ? <X size={18} /> : <Search size={18} />}
-                </button>
+            <div className="ml-auto flex items-center gap-4 md:gap-6">
 
-                {/* Search Panel */}
-                <div
-                  className={`absolute right-0 top-[calc(100%+0.75rem)] w-[calc(100vw-2rem)] sm:w-[380px] md:w-[460px] transition-all duration-300 ${
-                    searchOpen
-                      ? 'opacity-100 visible translate-y-0'
-                      : 'opacity-0 invisible -translate-y-2 pointer-events-none'
-                  }`}
-                >
-                  <div className="bg-v-white text-v-black border border-v-border shadow-2xl">
+              <button
+                onClick={() =>
+                  setSearchOpen(!searchOpen)
+                }
+                className={`${textColor} hover:opacity-60 transition-opacity`}
+                aria-label="Search"
+              >
+                <Search size={18} />
+              </button>
 
-                    <div className="flex items-center gap-3 px-4 py-4 border-b border-v-border">
-                      <Search size={17} className="text-v-gray shrink-0" />
-
-                      <input
-                        type="search"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search products..."
-                        className="flex-1 bg-transparent outline-none text-sm placeholder:text-gray-400"
-                        autoFocus={searchOpen}
-                      />
-
-                      {searchQuery && (
-                        <button
-                          type="button"
-                          onClick={() => setSearchQuery('')}
-                          className="text-v-gray hover:text-v-black"
-                        >
-                          <X size={15} />
-                        </button>
-                      )}
-                    </div>
-
-                    {searchQuery && (
-                      <div className="max-h-[360px] overflow-y-auto">
-
-                        {suggestions.length > 0 ? (
-                          <div className="p-2">
-                            {suggestions.map((product) => (
-                              <Link
-                                key={product.id}
-                                href={`/shop/${product.id}`}
-                                onClick={() => {
-                                  setSearchOpen(false)
-                                  setSearchQuery('')
-                                }}
-                                className="flex items-center gap-3 p-3 hover:bg-v-light transition-colors"
-                              >
-                                <div className="w-12 h-14 bg-v-light overflow-hidden shrink-0">
-                                  <img
-                                    src={product.images[0]}
-                                    alt={product.name}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-
-                                <div className="min-w-0">
-                                  <p className="text-sm font-medium truncate">
-                                    {product.name}
-                                  </p>
-
-                                  <p className="text-xs text-v-gray mt-1">
-                                    ৳{product.price.toLocaleString()}
-                                  </p>
-                                </div>
-                              </Link>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="px-5 py-8 text-center">
-                            <p className="text-sm font-medium">
-                              No products found
-                            </p>
-
-                            <p className="text-xs text-v-gray mt-2">
-                              Try another product name or category.
-                            </p>
-                          </div>
-                        )}
-
-                      </div>
-                    )}
-
-                    {!searchQuery && (
-                      <div className="p-5">
-                        <p className="text-[10px] tracking-[0.2em] uppercase text-v-gray mb-3">
-                          Popular Categories
-                        </p>
-
-                        <div className="flex flex-wrap gap-2">
-                          {navCategories.slice(0, 5).map((cat) => (
-                            <Link
-                              key={cat.slug}
-                              href={`/shop?category=${cat.slug}`}
-                              onClick={() => setSearchOpen(false)}
-                              className="px-3 py-2 border border-v-border text-xs hover:bg-v-black hover:text-white transition-colors"
-                            >
-                              {cat.name}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                  </div>
-                </div>
-              </div>
-
-              {/* Cart */}
               <Link
                 href="/cart"
-                className={`header-icon relative ${
-                  isScrolled ? 'header-dark' : 'header-light'
-                }`}
+                className={`${textColor} hover:opacity-60 transition-opacity relative`}
                 aria-label="Shopping cart"
               >
+
                 <ShoppingBag size={18} />
 
                 {itemCount > 0 && (
-                  <span
-                    className={`absolute -top-1.5 -right-1.5 w-[17px] h-[17px] rounded-full flex items-center justify-center text-[9px] font-semibold ${
-                      isScrolled
-                        ? 'bg-v-black text-white'
-                        : 'bg-white text-black'
-                    }`}
-                  >
-                    {itemCount > 99 ? '99+' : itemCount}
+                  <span className="absolute -top-2 -right-2 bg-v-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                    {itemCount}
                   </span>
                 )}
+
               </Link>
 
-              {/* Mobile menu */}
               <button
-                type="button"
-                onClick={() => setMobileOpen(true)}
-                className={`md:hidden header-icon ${
-                  isScrolled ? 'header-dark' : 'header-light'
-                }`}
-                aria-label="Open menu"
+                className={`md:hidden ${textColor}`}
+                onClick={() =>
+                  setMobileOpen(!mobileOpen)
+                }
+                aria-label="Menu"
               >
-                <Menu size={20} />
+                {mobileOpen ? (
+                  <X size={20} />
+                ) : (
+                  <Menu size={20} />
+                )}
               </button>
 
             </div>
+
           </div>
+
         </div>
 
-        {/* Mobile Menu */}
-        <div
-          className={`md:hidden fixed inset-0 z-[110] bg-v-white text-v-black transition-all duration-500 ${
-            mobileOpen
-              ? 'opacity-100 visible'
-              : 'opacity-0 invisible pointer-events-none'
-          }`}
-        >
-          <div className="h-full overflow-y-auto">
 
-            <div className="h-16 flex items-center justify-between px-4 border-b border-v-border">
+        {/* SEARCH */}
 
-              <Link
-                href="/"
-                onClick={closeMenus}
-                className="font-display text-xl font-semibold tracking-[0.18em]"
-              >
-                VELSARIO
-              </Link>
+        {searchOpen && (
 
-              <button
-                type="button"
-                onClick={closeMenus}
-                className="w-10 h-10 flex items-center justify-center"
-                aria-label="Close menu"
-              >
-                <X size={21} />
-              </button>
+          <div className="border-t border-v-border bg-white shadow-lg">
+
+            <div className="max-w-3xl mx-auto px-4 md:px-8 py-5">
+
+              <div className="flex items-center gap-4">
+
+                <Search
+                  size={17}
+                  className="text-v-gray flex-shrink-0"
+                />
+
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={e =>
+                    setSearchQuery(
+                      e.target.value
+                    )
+                  }
+                  className="flex-1 bg-transparent outline-none text-sm"
+                  autoFocus
+                />
+
+                <button
+                  onClick={() =>
+                    setSearchOpen(false)
+                  }
+                  className="text-v-gray hover:text-black"
+                >
+                  <X size={16} />
+                </button>
+
+              </div>
+
+              {searchQuery.trim() && (
+                <div className="mt-4 border-t border-v-border pt-4 text-xs text-v-gray">
+                  Searching for:
+                  <span className="text-black ml-2">
+                    {searchQuery}
+                  </span>
+                </div>
+              )}
 
             </div>
 
-            <div className="px-5 py-7">
+          </div>
 
-              <p className="section-label mb-5">
-                Catalog
-              </p>
+        )}
 
-              <div className="border-t border-v-border">
+      </nav>
 
-                {navCategories.map((cat, index) => (
+
+      {/* MOBILE MENU */}
+
+      {mobileOpen && (
+
+        <div className="fixed inset-0 z-40 bg-white pt-20 overflow-y-auto">
+
+          <div className="px-6 py-8">
+
+            <p className="section-label mb-4">
+              Catalog
+            </p>
+
+            <div className="border-t border-v-border">
+
+              {navCategories.map(
+                cat => (
+
                   <Link
                     key={cat.slug}
                     href={`/shop?category=${cat.slug}`}
-                    onClick={closeMenus}
-                    className="mobile-menu-link"
-                    style={{
-                      transitionDelay: mobileOpen
-                        ? `${index * 35}ms`
-                        : '0ms',
-                    }}
+                    className="flex items-center justify-between py-4 text-sm tracking-wider uppercase border-b border-v-border"
+                    onClick={() =>
+                      setMobileOpen(false)
+                    }
                   >
-                    <span>{cat.name}</span>
-                    <ArrowRight size={15} />
+                    {cat.name}
+                    <span>→</span>
                   </Link>
-                ))}
 
-              </div>
-
-              <div className="mt-8 pt-7 border-t border-v-border flex flex-col">
-
-                <Link
-                  href="/shop"
-                  onClick={closeMenus}
-                  className="mobile-main-link"
-                >
-                  Shop All
-                </Link>
-
-                <Link
-                  href="/about"
-                  onClick={closeMenus}
-                  className="mobile-main-link"
-                >
-                  About
-                </Link>
-
-                <Link
-                  href="/contact"
-                  onClick={closeMenus}
-                  className="mobile-main-link"
-                >
-                  Contact
-                </Link>
-
-              </div>
-
-              <div className="mt-10 p-5 bg-v-light">
-                <p className="section-label mb-2">
-                  Velsario
-                </p>
-
-                <p className="font-display text-2xl leading-tight">
-                  Minimal colors.
-                  <br />
-                  <em>Maximum impact.</em>
-                </p>
-              </div>
+                )
+              )}
 
             </div>
+
+            <div className="flex flex-col gap-5 pt-8">
+
+              <Link
+                href="/shop"
+                className="nav-link"
+                onClick={() =>
+                  setMobileOpen(false)
+                }
+              >
+                Shop All
+              </Link>
+
+              <Link
+                href="/about"
+                className="nav-link"
+                onClick={() =>
+                  setMobileOpen(false)
+                }
+              >
+                About
+              </Link>
+
+              <Link
+                href="/contact"
+                className="nav-link"
+                onClick={() =>
+                  setMobileOpen(false)
+                }
+              >
+                Contact
+              </Link>
+
+            </div>
+
           </div>
+
         </div>
-      </nav>
+
+      )}
+
     </>
   )
 }
