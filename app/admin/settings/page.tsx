@@ -11,7 +11,16 @@ import {
   PanelBottom,
   Upload,
   X,
+  Plus,
+  Trash2,
 } from 'lucide-react'
+
+type SocialLink = {
+  id: string
+  platform: string
+  url: string
+  enabled: boolean
+}
 
 type Settings = {
   storeName: string
@@ -19,7 +28,8 @@ type Settings = {
   phone: string
   currency: string
 
-  logo: string
+  headerLogo: string
+  footerLogo: string
   favicon: string
 
   announcementEnabled: boolean
@@ -29,13 +39,11 @@ type Settings = {
   headerLogoEnabled: boolean
 
   footerEnabled: boolean
+  footerLogoEnabled: boolean
   footerText: string
   footerCopyright: string
-  footerLogoEnabled: boolean
 
-  facebook: string
-  instagram: string
-  whatsapp: string
+  socialLinks: SocialLink[]
 
   orderNotifications: boolean
 }
@@ -46,7 +54,8 @@ const defaultSettings: Settings = {
   phone: '',
   currency: 'BDT',
 
-  logo: '',
+  headerLogo: '',
+  footerLogo: '',
   favicon: '',
 
   announcementEnabled: false,
@@ -56,16 +65,27 @@ const defaultSettings: Settings = {
   headerLogoEnabled: true,
 
   footerEnabled: true,
-  footerText: '',
-  footerCopyright: '© 2026 VELSARIO. All rights reserved.',
   footerLogoEnabled: true,
+  footerText:
+    'Our journey began with a simple yet powerful vision — to redefine the way men & women experience fashion.',
+  footerCopyright:
+    '© 2026 VELSARIO | All Rights Reserved',
 
-  facebook: '',
-  instagram: '',
-  whatsapp: '',
+  socialLinks: [],
 
   orderNotifications: true,
 }
+
+const socialPlatforms = [
+  'Facebook',
+  'Instagram',
+  'WhatsApp',
+  'YouTube',
+  'TikTok',
+  'X / Twitter',
+  'LinkedIn',
+  'Telegram',
+]
 
 export default function SettingsPage() {
 
@@ -79,6 +99,8 @@ export default function SettingsPage() {
     useState(false)
 
 
+  /* LOAD SETTINGS */
+
   useEffect(() => {
 
     try {
@@ -90,15 +112,40 @@ export default function SettingsPage() {
 
       if (savedSettings) {
 
+        const parsed =
+          JSON.parse(savedSettings)
+
         setSettings({
           ...defaultSettings,
-          ...JSON.parse(savedSettings),
+          ...parsed,
+
+          /*
+           * Old settings compatibility
+           * If old "logo" exists, use it
+           * as the header logo.
+           */
+          headerLogo:
+            parsed.headerLogo ||
+            parsed.logo ||
+            '',
+
+          footerLogo:
+            parsed.footerLogo ||
+            parsed.logo ||
+            '',
+
+          socialLinks:
+            Array.isArray(parsed.socialLinks)
+              ? parsed.socialLinks
+              : [],
         })
 
       }
 
     } catch {
+
       setSettings(defaultSettings)
+
     }
 
     setLoaded(true)
@@ -106,7 +153,11 @@ export default function SettingsPage() {
   }, [])
 
 
-  const updateSetting = <K extends keyof Settings>(
+  /* UPDATE SETTING */
+
+  const updateSetting = <
+    K extends keyof Settings
+  >(
     key: K,
     value: Settings[K]
   ) => {
@@ -121,8 +172,13 @@ export default function SettingsPage() {
   }
 
 
+  /* IMAGE UPLOAD */
+
   const handleImageUpload = (
-    key: 'logo' | 'favicon',
+    key:
+      | 'headerLogo'
+      | 'footerLogo'
+      | 'favicon',
     file: File | undefined
   ) => {
 
@@ -152,14 +208,102 @@ export default function SettingsPage() {
   }
 
 
+  /* REMOVE IMAGE */
+
   const removeImage = (
-    key: 'logo' | 'favicon'
+    key:
+      | 'headerLogo'
+      | 'footerLogo'
+      | 'favicon'
   ) => {
 
     updateSetting(key, '')
 
   }
 
+
+  /* ADD SOCIAL */
+
+  const addSocial = () => {
+
+    if (settings.socialLinks.length >= 8) {
+
+      alert(
+        'You can add maximum 8 social media accounts.'
+      )
+
+      return
+
+    }
+
+    const availablePlatform =
+      socialPlatforms.find(
+        platform =>
+          !settings.socialLinks.some(
+            social =>
+              social.platform === platform
+          )
+      ) || 'Custom'
+
+    const newSocial: SocialLink = {
+      id: Date.now().toString(),
+      platform: availablePlatform,
+      url: '',
+      enabled: true,
+    }
+
+    updateSetting(
+      'socialLinks',
+      [
+        ...settings.socialLinks,
+        newSocial,
+      ]
+    )
+
+  }
+
+
+  /* UPDATE SOCIAL */
+
+  const updateSocial = (
+    id: string,
+    key: keyof SocialLink,
+    value: string | boolean
+  ) => {
+
+    updateSetting(
+      'socialLinks',
+      settings.socialLinks.map(
+        social =>
+          social.id === id
+            ? {
+                ...social,
+                [key]: value,
+              }
+            : social
+      )
+    )
+
+  }
+
+
+  /* DELETE SOCIAL */
+
+  const deleteSocial = (
+    id: string
+  ) => {
+
+    updateSetting(
+      'socialLinks',
+      settings.socialLinks.filter(
+        social => social.id !== id
+      )
+    )
+
+  }
+
+
+  /* SAVE */
 
   const handleSave = () => {
 
@@ -225,7 +369,7 @@ export default function SettingsPage() {
         </h1>
 
         <p className="text-sm text-v-gray mt-1">
-          Manage your store, branding, header and footer.
+          Manage your store, branding, header, footer and social media.
         </p>
 
       </div>
@@ -258,9 +402,6 @@ export default function SettingsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-
-          {/* STORE NAME */}
-
           <div>
 
             <label className="block text-xs tracking-wider mb-2">
@@ -281,8 +422,6 @@ export default function SettingsPage() {
 
           </div>
 
-
-          {/* CURRENCY */}
 
           <div>
 
@@ -314,8 +453,6 @@ export default function SettingsPage() {
           </div>
 
 
-          {/* EMAIL */}
-
           <div>
 
             <label className="block text-xs tracking-wider mb-2">
@@ -337,8 +474,6 @@ export default function SettingsPage() {
 
           </div>
 
-
-          {/* PHONE */}
 
           <div>
 
@@ -383,7 +518,7 @@ export default function SettingsPage() {
             </h2>
 
             <p className="text-xs text-v-gray mt-1">
-              Manage your brand logo and favicon.
+              Upload separate logos for your header and footer.
             </p>
 
           </div>
@@ -394,25 +529,25 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
 
-          {/* LOGO */}
+          {/* HEADER LOGO */}
 
           <div>
 
             <label className="block text-xs tracking-wider mb-3">
-              Brand Logo
+              Header Logo
             </label>
 
             <div className="border border-dashed border-v-border p-5">
 
-              {settings.logo ? (
+              {settings.headerLogo ? (
 
                 <div>
 
                   <div className="h-32 bg-gray-50 flex items-center justify-center overflow-hidden mb-4">
 
                     <img
-                      src={settings.logo}
-                      alt="Brand logo"
+                      src={settings.headerLogo}
+                      alt="Header logo"
                       className="max-h-24 max-w-full object-contain"
                     />
 
@@ -421,14 +556,16 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={() =>
-                      removeImage('logo')
+                      removeImage(
+                        'headerLogo'
+                      )
                     }
                     className="flex items-center gap-2 text-xs text-red-500"
                   >
 
                     <X size={13} />
 
-                    Remove Logo
+                    Remove Header Logo
 
                   </button>
 
@@ -444,7 +581,7 @@ export default function SettingsPage() {
                   />
 
                   <span className="text-xs font-medium">
-                    Upload Logo
+                    Upload Header Logo
                   </span>
 
                   <span className="text-xs text-gray-400 mt-1">
@@ -457,7 +594,87 @@ export default function SettingsPage() {
                     className="hidden"
                     onChange={e =>
                       handleImageUpload(
-                        'logo',
+                        'headerLogo',
+                        e.target.files?.[0]
+                      )
+                    }
+                  />
+
+                </label>
+
+              )}
+
+            </div>
+
+          </div>
+
+
+          {/* FOOTER LOGO */}
+
+          <div>
+
+            <label className="block text-xs tracking-wider mb-3">
+              Footer Logo
+            </label>
+
+            <div className="border border-dashed border-v-border p-5">
+
+              {settings.footerLogo ? (
+
+                <div>
+
+                  <div className="h-32 bg-gray-50 flex items-center justify-center overflow-hidden mb-4">
+
+                    <img
+                      src={settings.footerLogo}
+                      alt="Footer logo"
+                      className="max-h-24 max-w-full object-contain"
+                    />
+
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      removeImage(
+                        'footerLogo'
+                      )
+                    }
+                    className="flex items-center gap-2 text-xs text-red-500"
+                  >
+
+                    <X size={13} />
+
+                    Remove Footer Logo
+
+                  </button>
+
+                </div>
+
+              ) : (
+
+                <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
+
+                  <Upload
+                    size={20}
+                    className="text-gray-400 mb-3"
+                  />
+
+                  <span className="text-xs font-medium">
+                    Upload Footer Logo
+                  </span>
+
+                  <span className="text-xs text-gray-400 mt-1">
+                    PNG, JPG, WEBP
+                  </span>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e =>
+                      handleImageUpload(
+                        'footerLogo',
                         e.target.files?.[0]
                       )
                     }
@@ -474,19 +691,19 @@ export default function SettingsPage() {
 
           {/* FAVICON */}
 
-          <div>
+          <div className="md:col-span-2">
 
             <label className="block text-xs tracking-wider mb-3">
               Favicon
             </label>
 
-            <div className="border border-dashed border-v-border p-5">
+            <div className="border border-dashed border-v-border p-5 max-w-md">
 
               {settings.favicon ? (
 
                 <div>
 
-                  <div className="h-32 bg-gray-50 flex items-center justify-center overflow-hidden mb-4">
+                  <div className="h-28 bg-gray-50 flex items-center justify-center overflow-hidden mb-4">
 
                     <img
                       src={settings.favicon}
@@ -499,7 +716,9 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={() =>
-                      removeImage('favicon')
+                      removeImage(
+                        'favicon'
+                      )
                     }
                     className="flex items-center gap-2 text-xs text-red-500"
                   >
@@ -582,7 +801,7 @@ export default function SettingsPage() {
         <div className="space-y-5">
 
 
-          {/* HEADER ENABLE */}
+          {/* SHOW HEADER */}
 
           <label className="flex items-center justify-between gap-4 cursor-pointer">
 
@@ -600,7 +819,9 @@ export default function SettingsPage() {
 
             <input
               type="checkbox"
-              checked={settings.headerEnabled}
+              checked={
+                settings.headerEnabled
+              }
               onChange={e =>
                 updateSetting(
                   'headerEnabled',
@@ -613,25 +834,27 @@ export default function SettingsPage() {
           </label>
 
 
-          {/* HEADER LOGO */}
+          {/* SHOW LOGO */}
 
           <label className="flex items-center justify-between gap-4 cursor-pointer">
 
             <div>
 
               <p className="text-sm font-medium">
-                Show Brand Logo
+                Show Header Logo
               </p>
 
               <p className="text-xs text-v-gray mt-1">
-                Display your uploaded brand logo in the header.
+                Display the uploaded header logo.
               </p>
 
             </div>
 
             <input
               type="checkbox"
-              checked={settings.headerLogoEnabled}
+              checked={
+                settings.headerLogoEnabled
+              }
               onChange={e =>
                 updateSetting(
                   'headerLogoEnabled',
@@ -718,7 +941,7 @@ export default function SettingsPage() {
             </h2>
 
             <p className="text-xs text-v-gray mt-1">
-              Manage your website footer content and social links.
+              Manage footer content and visibility.
             </p>
 
           </div>
@@ -729,7 +952,7 @@ export default function SettingsPage() {
         <div className="space-y-6">
 
 
-          {/* FOOTER ENABLE */}
+          {/* SHOW FOOTER */}
 
           <label className="flex items-center justify-between gap-4 cursor-pointer">
 
@@ -747,7 +970,9 @@ export default function SettingsPage() {
 
             <input
               type="checkbox"
-              checked={settings.footerEnabled}
+              checked={
+                settings.footerEnabled
+              }
               onChange={e =>
                 updateSetting(
                   'footerEnabled',
@@ -760,7 +985,7 @@ export default function SettingsPage() {
           </label>
 
 
-          {/* FOOTER LOGO */}
+          {/* SHOW FOOTER LOGO */}
 
           <label className="flex items-center justify-between gap-4 cursor-pointer">
 
@@ -771,7 +996,7 @@ export default function SettingsPage() {
               </p>
 
               <p className="text-xs text-v-gray mt-1">
-                Display the brand logo in the footer.
+                Display the uploaded footer logo.
               </p>
 
             </div>
@@ -802,7 +1027,9 @@ export default function SettingsPage() {
             </label>
 
             <textarea
-              value={settings.footerText}
+              value={
+                settings.footerText
+              }
               onChange={e =>
                 updateSetting(
                   'footerText',
@@ -841,88 +1068,224 @@ export default function SettingsPage() {
 
           </div>
 
+        </div>
 
-          {/* SOCIAL LINKS */}
-
-          <div>
-
-            <p className="text-xs tracking-wider mb-4">
-              Social Links
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      </div>
 
 
-              <div>
+      {/* SOCIAL MEDIA */}
 
-                <label className="block text-xs text-v-gray mb-2">
-                  Facebook
-                </label>
+      <div className="bg-white border border-v-border p-6 md:p-8 mb-6">
 
-                <input
-                  type="url"
-                  value={settings.facebook}
-                  onChange={e =>
-                    updateSetting(
-                      'facebook',
-                      e.target.value
-                    )
-                  }
-                  placeholder="https://facebook.com/..."
-                  className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
-                />
+        <div className="flex items-center justify-between gap-4 mb-6">
 
-              </div>
+          <div className="flex items-center gap-3">
 
+            <div className="w-9 h-9 bg-gray-100 flex items-center justify-center">
 
-              <div>
+              <MessageCircle size={17} />
 
-                <label className="block text-xs text-v-gray mb-2">
-                  Instagram
-                </label>
+            </div>
 
-                <input
-                  type="url"
-                  value={settings.instagram}
-                  onChange={e =>
-                    updateSetting(
-                      'instagram',
-                      e.target.value
-                    )
-                  }
-                  placeholder="https://instagram.com/..."
-                  className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
-                />
+            <div>
 
-              </div>
+              <h2 className="text-sm font-medium">
+                Social Media
+              </h2>
 
-
-              <div>
-
-                <label className="block text-xs text-v-gray mb-2">
-                  WhatsApp
-                </label>
-
-                <input
-                  type="text"
-                  value={settings.whatsapp}
-                  onChange={e =>
-                    updateSetting(
-                      'whatsapp',
-                      e.target.value
-                    )
-                  }
-                  placeholder="+880..."
-                  className="w-full border border-v-border px-4 py-3 text-sm outline-none focus:border-black"
-                />
-
-              </div>
+              <p className="text-xs text-v-gray mt-1">
+                Add up to 8 social media profiles.
+              </p>
 
             </div>
 
           </div>
 
+
+          <button
+            type="button"
+            onClick={addSocial}
+            disabled={
+              settings.socialLinks.length >= 8
+            }
+            className="flex items-center gap-2 bg-v-black text-white px-4 py-2 text-xs tracking-wider disabled:opacity-40"
+          >
+
+            <Plus size={14} />
+
+            Add Social
+
+          </button>
+
         </div>
+
+
+        {settings.socialLinks.length === 0 ? (
+
+          <div className="border border-dashed border-v-border py-10 text-center">
+
+            <p className="text-sm text-v-gray">
+              No social media accounts added.
+            </p>
+
+            <p className="text-xs text-gray-400 mt-2">
+              Click "Add Social" to add your first profile.
+            </p>
+
+          </div>
+
+        ) : (
+
+          <div className="space-y-4">
+
+            {settings.socialLinks.map(
+              (social, index) => (
+
+                <div
+                  key={social.id}
+                  className="border border-v-border p-4"
+                >
+
+                  <div className="grid grid-cols-1 md:grid-cols-[180px_1fr_auto_auto] gap-3 items-end">
+
+
+                    {/* PLATFORM */}
+
+                    <div>
+
+                      <label className="block text-xs text-v-gray mb-2">
+                        Platform
+                      </label>
+
+                      <select
+                        value={
+                          social.platform
+                        }
+                        onChange={e =>
+                          updateSocial(
+                            social.id,
+                            'platform',
+                            e.target.value
+                          )
+                        }
+                        className="w-full border border-v-border px-3 py-3 text-sm outline-none bg-white focus:border-black"
+                      >
+
+                        {socialPlatforms.map(
+                          platform => (
+
+                            <option
+                              key={platform}
+                              value={platform}
+                            >
+                              {platform}
+                            </option>
+
+                          )
+                        )}
+
+                        {!socialPlatforms.includes(
+                          social.platform
+                        ) && (
+
+                          <option
+                            value={
+                              social.platform
+                            }
+                          >
+                            {social.platform}
+                          </option>
+
+                        )}
+
+                      </select>
+
+                    </div>
+
+
+                    {/* URL */}
+
+                    <div>
+
+                      <label className="block text-xs text-v-gray mb-2">
+                        Profile URL
+                      </label>
+
+                      <input
+                        type="url"
+                        value={social.url}
+                        onChange={e =>
+                          updateSocial(
+                            social.id,
+                            'url',
+                            e.target.value
+                          )
+                        }
+                        placeholder="https://..."
+                        className="w-full border border-v-border px-3 py-3 text-sm outline-none focus:border-black"
+                      />
+
+                    </div>
+
+
+                    {/* ENABLE */}
+
+                    <label className="flex items-center gap-2 h-11 px-3 border border-v-border cursor-pointer">
+
+                      <input
+                        type="checkbox"
+                        checked={
+                          social.enabled
+                        }
+                        onChange={e =>
+                          updateSocial(
+                            social.id,
+                            'enabled',
+                            e.target.checked
+                          )
+                        }
+                        className="w-4 h-4"
+                      />
+
+                      <span className="text-xs">
+                        Active
+                      </span>
+
+                    </label>
+
+
+                    {/* DELETE */}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        deleteSocial(
+                          social.id
+                        )
+                      }
+                      className="h-11 w-11 border border-v-border flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-red-50"
+                      title="Remove social"
+                    >
+
+                      <Trash2 size={15} />
+
+                    </button>
+
+                  </div>
+
+
+                  <p className="text-[11px] text-gray-400 mt-3">
+                    Social #{index + 1}
+                  </p>
+
+                </div>
+
+              )
+            )}
+
+          </div>
+
+        )}
 
       </div>
 
