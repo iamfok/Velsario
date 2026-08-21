@@ -430,14 +430,13 @@ export default function AdminProductsPage() {
                         </p>
 
                         <p className="text-gray-400 mt-1">
-                          {[
-                            ...new Set(
-                              product.variants.map(
-                                variant =>
-                                  variant.color
-                              )
-                            ),
-                          ].join(', ')}
+                        {Array.from(
+  new Set(
+    product.variants.map(
+      variant => variant.color
+    )
+  )
+).join(', ')}
                         </p>
 
                       </div>
