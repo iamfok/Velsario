@@ -339,10 +339,13 @@ export default function Navbar() {
 
   const currentLogoWidth =
     isScrolled
-      ? settings.headerLogoBlackWidth ||
-        150
-      : settings.headerLogoWhiteWidth ||
-        150
+      ? settings.headerLogoBlackWidth || 150
+      : settings.headerLogoWhiteWidth || 150
+
+  if (settings.headerEnabled === false) {
+    return null
+  }
+
   return (
     <>
       {/* =================================
