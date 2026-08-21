@@ -7,7 +7,7 @@ import {
   Eye,
   ShoppingCart,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type Order = {
   id: string
@@ -19,31 +19,70 @@ type Order = {
   paymentStatus: string
 }
 
+const statusColors: Record<string, string> = {
+  Pending: 'bg-yellow-50 text-yellow-600',
+  Processing: 'bg-blue-50 text-blue-600',
+  Shipped: 'bg-purple-50 text-purple-600',
+  Delivered: 'bg-green-50 text-green-600',
+  Cancelled: 'bg-red-50 text-red-500',
+}
+
 export default function AdminOrdersPage() {
+
   const [search, setSearch] = useState('')
-  const [orders] = useState<Order[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const filteredOrders = orders.filter((order) =>
-    order.id.toLowerCase().includes(search.toLowerCase()) ||
-    order.customer.toLowerCase().includes(search.toLowerCase()) ||
-    order.product.toLowerCase().includes(search.toLowerCase())
-  )
+  const loadOrders = () => {
 
-  const statusColors: Record<string, string> = {
-    Pending: 'bg-yellow-50 text-yellow-600',
-    Processing: 'bg-blue-50 text-blue-600',
-    Shipped: 'bg-purple-50 text-purple-600',
-    Delivered: 'bg-green-50 text-green-600',
-    Cancelled: 'bg-red-50 text-red-500',
+    setLoading(true)
+
+    try {
+
+      const savedOrders =
+        localStorage.getItem('velsario-orders')
+
+      if (savedOrders) {
+        setOrders(
+          JSON.parse(savedOrders)
+        )
+      } else {
+        setOrders([])
+      }
+
+    } catch {
+      setOrders([])
+    }
+
+    setLoading(false)
   }
+
+  useEffect(() => {
+    loadOrders()
+  }, [])
+
+  const filteredOrders =
+    orders.filter((order) =>
+      order.id
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
+      order.customer
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
+      order.product
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    )
 
   return (
     <div className="max-w-7xl mx-auto">
 
       {/* HEADER */}
+
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
 
         <div>
+
           <p className="text-xs tracking-widest uppercase text-v-gray mb-2">
             Manage
           </p>
@@ -55,11 +94,12 @@ export default function AdminOrdersPage() {
           <p className="text-sm text-v-gray mt-1">
             Manage all customer orders from your store.
           </p>
+
         </div>
 
         <button
           type="button"
-          onClick={() => window.location.reload()}
+          onClick={loadOrders}
           className="flex items-center justify-center gap-2 border border-v-border px-5 py-3 text-xs tracking-wider uppercase hover:bg-v-light transition-colors"
         >
           <RefreshCw size={14} />
@@ -68,7 +108,9 @@ export default function AdminOrdersPage() {
 
       </div>
 
+
       {/* SEARCH */}
+
       <div className="bg-white border border-v-border p-4 mb-6">
 
         <div className="relative">
@@ -81,7 +123,9 @@ export default function AdminOrdersPage() {
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
             placeholder="Search by order ID, customer or product..."
             className="w-full border border-v-border px-10 py-3 text-sm outline-none focus:border-black"
           />
@@ -90,14 +134,37 @@ export default function AdminOrdersPage() {
 
       </div>
 
-      {/* ORDERS TABLE */}
-      {filteredOrders.length > 0 ? (
+
+      {/* LOADING */}
+
+      {loading ? (
+
+        <div className="bg-white border border-v-border">
+
+          <div className="text-center py-20">
+
+            <RefreshCw
+              size={22}
+              className="mx-auto mb-4 animate-spin text-gray-400"
+            />
+
+            <p className="text-sm text-v-gray">
+              Loading orders...
+            </p>
+
+          </div>
+
+        </div>
+
+      ) : filteredOrders.length > 0 ? (
+
+        /* ORDERS TABLE */
 
         <div className="bg-white border border-v-border overflow-hidden">
 
           <div className="overflow-x-auto">
 
-            <table className="w-full min-w-[900px]">
+            <table className="w-full min-w-[1000px]">
 
               <thead>
 
@@ -120,7 +187,11 @@ export default function AdminOrdersPage() {
                   </th>
 
                   <th className="text-left px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
-                    Status
+                    Order Status
+                  </th>
+
+                  <th className="text-left px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
+                    Payment
                   </th>
 
                   <th className="text-right px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
@@ -131,6 +202,7 @@ export default function AdminOrdersPage() {
 
               </thead>
 
+
               <tbody className="divide-y divide-v-border">
 
                 {filteredOrders.map((order) => (
@@ -139,6 +211,8 @@ export default function AdminOrdersPage() {
                     key={order.id}
                     className="hover:bg-v-light transition-colors"
                   >
+
+                    {/* ORDER */}
 
                     <td className="px-6 py-4">
 
@@ -152,23 +226,49 @@ export default function AdminOrdersPage() {
 
                     </td>
 
-                    <td className="px-6 py-4 text-sm">
-                      {order.customer}
+
+                    {/* CUSTOMER */}
+
+                    <td className="px-6 py-4">
+
+                      <p className="text-sm">
+                        {order.customer}
+                      </p>
+
                     </td>
 
-                    <td className="px-6 py-4 text-sm">
-                      {order.product}
+
+                    {/* PRODUCT */}
+
+                    <td className="px-6 py-4">
+
+                      <p className="text-sm max-w-[220px] truncate">
+                        {order.product}
+                      </p>
+
                     </td>
 
-                    <td className="px-6 py-4 text-sm font-medium">
-                      ৳{order.amount.toLocaleString()}
+
+                    {/* AMOUNT */}
+
+                    <td className="px-6 py-4">
+
+                      <span className="text-sm font-medium">
+                        ৳{order.amount.toLocaleString()}
+                      </span>
+
                     </td>
+
+
+                    {/* ORDER STATUS */}
 
                     <td className="px-6 py-4">
 
                       <span
                         className={`text-xs px-3 py-1 ${
-                          statusColors[order.status] ||
+                          statusColors[
+                            order.status
+                          ] ||
                           'bg-gray-50 text-gray-600'
                         }`}
                       >
@@ -176,6 +276,30 @@ export default function AdminOrdersPage() {
                       </span>
 
                     </td>
+
+
+                    {/* PAYMENT */}
+
+                    <td className="px-6 py-4">
+
+                      <span
+                        className={`text-xs px-3 py-1 ${
+                          order.paymentStatus ===
+                          'Paid'
+                            ? 'bg-green-50 text-green-600'
+                            : order.paymentStatus ===
+                              'Failed'
+                              ? 'bg-red-50 text-red-500'
+                              : 'bg-yellow-50 text-yellow-600'
+                        }`}
+                      >
+                        {order.paymentStatus}
+                      </span>
+
+                    </td>
+
+
+                    {/* ACTION */}
 
                     <td className="px-6 py-4">
 
@@ -208,6 +332,7 @@ export default function AdminOrdersPage() {
       ) : (
 
         /* EMPTY STATE */
+
         <div className="bg-white border border-v-border">
 
           <div className="text-center py-20 px-6">
@@ -222,18 +347,34 @@ export default function AdminOrdersPage() {
             </div>
 
             <h2 className="text-lg font-medium">
-              No orders yet
+              {search
+                ? 'No orders found'
+                : 'No orders yet'}
             </h2>
 
             <p className="text-sm text-v-gray mt-2 max-w-md mx-auto">
-              Orders placed through your Velsario store will appear here.
-            </p>
 
-            <p className="text-xs text-gray-400 mt-4">
-              Order storage will be connected to the Cloudflare database.
+              {search
+                ? 'Try searching with a different order ID, customer or product.'
+                : 'Orders placed through your Velsario store will appear here.'}
+
             </p>
 
           </div>
+
+        </div>
+
+      )}
+
+
+      {/* TOTAL */}
+
+      {!loading && orders.length > 0 && (
+
+        <div className="mt-4 text-xs text-v-gray">
+
+          Showing {filteredOrders.length} of{' '}
+          {orders.length} orders
 
         </div>
 
