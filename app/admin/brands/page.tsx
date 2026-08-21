@@ -595,21 +595,20 @@ export default function BrandsPage() {
                     <button
                       onClick={() => {
 
-                        const updated =
-                          brands.map(item =>
-                            item.id === brand.id
-                              ? {
-                                  ...item,
-                                  status:
-                                    item.status ===
-                                    'Active'
-                                      ? 'Inactive'
-                                      : 'Active',
-                                }
-                              : item
-                          )
+                        const updated: Brand[] =
+  brands.map(item =>
+    item.id === brand.id
+      ? {
+          ...item,
+          status:
+            item.status === 'Active'
+              ? 'Inactive'
+              : 'Active',
+        }
+      : item
+  )
 
-                        saveBrands(updated)
+saveBrands(updated)
 
                       }}
                       className={`text-xs px-2 py-1 ${
