@@ -485,7 +485,7 @@ export default function Navbar() {
                           rounded-full
                           border
                           border-black/5
-                        />
+                        "/>
 
                         <div className="relative">
 
