@@ -10,17 +10,51 @@ import {
   MessageCircle,
   Send,
   Music2,
-  ArrowUpRight,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-const footerCategories = [
-  { label: 'Velsario Shirt', slug: 'velsario-shirt' },
-  { label: 'Velsario Pants', slug: 'velsario-pants' },
-  { label: 'Accessories', slug: 'accessories' },
-  { label: 'Activewear', slug: 'activewear' },
-  { label: 'Evening Dresses', slug: 'evening-dresses' },
-]
+type SocialLink = {
+  id: string
+  platform: string
+  url: string
+  enabled: boolean
+}
+
+type Settings = {
+  footerEnabled?: boolean
+  footerLogoEnabled?: boolean
+  footerLogo?: string
+  footerLogoWidth?: number
+  footerText?: string
+  footerCopyright?: string
+  socialLinks?: SocialLink[]
+}
+
+const defaultSettings: Settings = {
+  footerEnabled: true,
+  footerLogoEnabled: true,
+  footerLogo: '',
+  footerLogoWidth: 190,
+  footerText:
+    'Our journey began with a simple yet powerful vision — to redefine the way men & women experience fashion.',
+  footerCopyright:
+    '© 2026 VELSARIO | All Rights Reserved',
+  socialLinks: [],
+}
+
+const socialIcons: Record<
+  string,
+  React.ElementType
+> = {
+  Facebook,
+  Instagram,
+  WhatsApp: MessageCircle,
+  YouTube: Youtube,
+  TikTok: Music2,
+  'X / Twitter': Twitter,
+  LinkedIn: Linkedin,
+  Telegram: Send,
+}
 
 const companyLinks = [
   { label: 'Home', href: '/' },
@@ -31,381 +65,356 @@ const companyLinks = [
   { label: 'Refund & Returns Policy', href: '/refund-returns' },
 ]
 
-const socialIcons: Record<string, any> = {
-  Facebook,
-  Instagram,
-  YouTube: Youtube,
-  LinkedIn: Linkedin,
-  Twitter,
-  WhatsApp: MessageCircle,
-  Telegram: Send,
-  TikTok: Music2,
-}
-
-const defaultSocials = [
+const categories = [
   {
-    name: 'Facebook',
-    url: 'https://www.facebook.com/velsarioofficial',
-    active: true,
+    label: 'Velsario Shirt',
+    slug: 'velsario-shirt',
   },
   {
-    name: 'Instagram',
-    url: 'https://www.instagram.com/velsarioofficials/',
-    active: true,
+    label: 'Velsario Pants',
+    slug: 'velsario-pants',
   },
   {
-    name: 'YouTube',
-    url: '',
-    active: false,
+    label: 'Accessories',
+    slug: 'accessories',
   },
   {
-    name: 'LinkedIn',
-    url: '',
-    active: false,
+    label: 'Activewear',
+    slug: 'activewear',
   },
   {
-    name: 'Twitter',
-    url: '',
-    active: false,
+    label: 'Evening Dresses',
+    slug: 'evening-dresses',
   },
-  {
-    name: 'WhatsApp',
-    url: 'https://api.whatsapp.com/send?phone=8801825134723',
-    active: true,
-  },
-  {
-    name: 'Telegram',
-    url: '',
-    active: false,
-  },
-  {
-    name: 'TikTok',
-    url: '',
-    active: false,
-  },
-]
-
-const defaultPayments = [
-  { name: 'Visa', image: '' },
-  { name: 'Mastercard', image: '' },
-  { name: 'American Express', image: '' },
-  { name: 'bKash', image: '' },
-  { name: 'Nagad', image: '' },
-  { name: 'COD', image: '' },
 ]
 
 export default function Footer() {
-  const [logo, setLogo] = useState('')
-  const [socials, setSocials] = useState(defaultSocials)
-  const [payments, setPayments] = useState(defaultPayments)
+
+  const [settings, setSettings] =
+    useState<Settings>(defaultSettings)
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('velsario_settings')
 
-      if (!saved) return
+    const loadSettings = () => {
 
-      const settings = JSON.parse(saved)
+      try {
 
-      if (settings.footerLogo) {
-        setLogo(settings.footerLogo)
-      }
+        const saved =
+          localStorage.getItem(
+            'velsario-settings'
+          )
 
-      if (Array.isArray(settings.socialMedia)) {
-        setSocials(settings.socialMedia)
-      }
+        if (saved) {
 
-      if (Array.isArray(settings.paymentMethods)) {
-        setPayments(settings.paymentMethods)
-      }
-    } catch {
-      // Keep defaults
+          setSettings({
+            ...defaultSettings,
+            ...JSON.parse(saved),
+          })
+
+        }
+
+      } catch {}
+
     }
+
+    loadSettings()
+
+    window.addEventListener(
+      'velsario-settings-updated',
+      loadSettings
+    )
+
+    return () =>
+      window.removeEventListener(
+        'velsario-settings-updated',
+        loadSettings
+      )
+
   }, [])
 
-  const activeSocials = socials.filter(
-    (social) => social.active && social.url
-  )
+  if (settings.footerEnabled === false) {
+    return null
+  }
+
+  const activeSocials =
+    (settings.socialLinks || []).filter(
+      social =>
+        social.enabled &&
+        social.url.trim()
+    )
 
   return (
-    <footer className="relative overflow-hidden bg-v-black text-v-white">
+
+    <footer className="relative overflow-hidden bg-[#080808] text-white">
 
       {/* STRUCTURAL BACKGROUND */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
 
-        <div className="absolute -top-40 -left-40 w-[420px] h-[420px] rounded-full border border-white/[0.04]" />
+      <div className="absolute inset-0 pointer-events-none">
 
-        <div className="absolute -top-24 -left-24 w-[280px] h-[280px] rounded-full border border-white/[0.04]" />
+        <div className="absolute -right-40 top-20 w-[500px] h-[500px] rounded-full border border-white/[0.04]" />
 
-        <div className="absolute right-[-180px] bottom-[-180px] w-[520px] h-[520px] rounded-full border border-white/[0.04]" />
+        <div className="absolute -right-20 top-40 w-[420px] h-[420px] rounded-full border border-white/[0.03]" />
 
-        <div className="absolute right-[-90px] bottom-[-90px] w-[340px] h-[340px] rounded-full border border-white/[0.04]" />
+        <div className="absolute left-0 bottom-0 w-[300px] h-[300px] rounded-full border border-white/[0.03]" />
 
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* =========================================
-            MAIN FOOTER
-        ========================================= */}
-        <div className="py-14 md:py-20">
+      <div className="relative max-w-7xl mx-auto px-5 md:px-8 py-16 md:py-20">
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-10">
 
-            {/* BRAND */}
-            <div className="sm:col-span-2 lg:col-span-1">
+
+          {/* BRAND */}
+
+          <div>
+
+            {settings.footerLogoEnabled !== false &&
+            settings.footerLogo ? (
+
+              <Link href="/">
+                <img
+                  src={settings.footerLogo}
+                  alt="Velsario"
+                  style={{
+                    width: `${Math.min(
+                      settings.footerLogoWidth || 190,
+                      280
+                    )}px`,
+                  }}
+                  className="h-auto max-w-full object-contain"
+                />
+              </Link>
+
+            ) : (
 
               <Link
                 href="/"
-                className="inline-flex items-center"
+                className="font-display text-2xl tracking-widest font-semibold"
               >
-
-                {logo ? (
-                  <img
-                    src={logo}
-                    alt="Velsario"
-                    className="w-auto max-w-[180px] h-auto max-h-12 object-contain"
-                  />
-                ) : (
-                  <span className="font-display text-2xl tracking-[0.18em] font-semibold">
-                    VELSARIO
-                  </span>
-                )}
-
+                VELSARIO
               </Link>
 
-              <p className="mt-5 text-sm text-gray-400 leading-relaxed font-light max-w-sm">
-                Our journey began with a simple yet powerful vision —
-                to redefine the way men & women experience fashion.
-              </p>
+            )}
 
-              {/* ACTIVE SOCIALS ONLY */}
-              {activeSocials.length > 0 && (
-                <div className="mt-7">
 
-                  <p className="text-[10px] tracking-[0.2em] uppercase text-gray-500 mb-4">
-                    Follow Velsario
-                  </p>
+            <p className="mt-5 text-sm text-gray-400 leading-relaxed font-light max-w-xs">
+              {settings.footerText}
+            </p>
 
-                  <div className="flex flex-wrap gap-2">
 
-                    {activeSocials.map((social) => {
+            {/* SOCIAL */}
 
-                      const Icon = socialIcons[social.name]
+            {activeSocials.length > 0 && (
 
-                      if (!Icon) return null
+              <div className="mt-7">
+
+                <p className="text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-4">
+                  Follow Velsario
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+
+                  {activeSocials.map(
+                    social => {
+
+                      const Icon =
+                        socialIcons[
+                          social.platform
+                        ] || MessageCircle
 
                       return (
+
                         <a
-                          key={social.name}
+                          key={social.id}
                           href={social.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          aria-label={social.name}
-                          title={social.name}
-                          className="footer-social"
+                          aria-label={
+                            social.platform
+                          }
+                          className="w-10 h-10 border border-white/10 flex items-center justify-center text-gray-400 hover:bg-white hover:text-black hover:border-white transition-all duration-300"
                         >
-                          <Icon size={15} />
+                          <Icon size={16} />
                         </a>
+
                       )
-                    })}
 
-                  </div>
-
-                </div>
-              )}
-
-            </div>
-
-
-            {/* COMPANY */}
-            <div>
-
-              <p className="footer-heading">
-                Company
-              </p>
-
-              <div className="flex flex-col gap-3">
-
-                {companyLinks.map((link) => (
-                  <Link
-                    key={`${link.label}-${link.href}`}
-                    href={link.href}
-                    className="footer-link"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-
-              </div>
-
-            </div>
-
-
-            {/* CATEGORIES */}
-            <div>
-
-              <p className="footer-heading">
-                Categories
-              </p>
-
-              <div className="flex flex-col gap-3">
-
-                {footerCategories.map((cat) => (
-                  <Link
-                    key={cat.slug}
-                    href={`/shop?category=${cat.slug}`}
-                    className="footer-link"
-                  >
-                    {cat.label}
-                  </Link>
-                ))}
-
-              </div>
-
-            </div>
-
-
-            {/* RIGHT SIDE */}
-            <div>
-
-              {/* NEWSLETTER */}
-              <div>
-
-                <p className="footer-heading">
-                  Newsletter
-                </p>
-
-                <p className="text-xs text-gray-500 leading-relaxed mb-4 max-w-xs">
-                  Get new collection updates, exclusive offers and
-                  selected stories from Velsario.
-                </p>
-
-                <form
-                  onSubmit={(e) => e.preventDefault()}
-                  className="flex border border-white/15 focus-within:border-white/40 transition-colors"
-                >
-
-                  <input
-                    type="email"
-                    required
-                    placeholder="Your email"
-                    className="min-w-0 flex-1 bg-transparent px-3 py-3 text-xs text-white placeholder:text-gray-600 outline-none"
-                  />
-
-                  <button
-                    type="submit"
-                    className="bg-white text-black px-4 py-3 text-[9px] tracking-[0.16em] uppercase font-medium hover:bg-gray-200 transition-colors"
-                  >
-                    Join
-                  </button>
-
-                </form>
-
-              </div>
-
-
-              {/* APPS */}
-              <div className="mt-8">
-
-                <p className="footer-heading">
-                  Get the App
-                </p>
-
-                <div className="grid grid-cols-2 gap-2">
-
-                  <a
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
-                    className="app-download"
-                  >
-
-                    <div>
-
-                      <span className="block text-[7px] uppercase tracking-wider text-gray-500">
-                        Download on the
-                      </span>
-
-                      <span className="block text-xs font-medium text-gray-200">
-                        App Store
-                      </span>
-
-                    </div>
-
-                    <ArrowUpRight size={12} />
-
-                  </a>
-
-                  <a
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
-                    className="app-download"
-                  >
-
-                    <div>
-
-                      <span className="block text-[7px] uppercase tracking-wider text-gray-500">
-                        Get it on
-                      </span>
-
-                      <span className="block text-xs font-medium text-gray-200">
-                        Google Play
-                      </span>
-
-                    </div>
-
-                    <ArrowUpRight size={12} />
-
-                  </a>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        {/* =========================================
-            PAYMENT OPTIONS
-            CENTERED ROW
-        ========================================= */}
-        <div className="border-t border-white/10 py-8">
-
-          <div className="flex flex-col items-center">
-
-            <p className="footer-heading mb-5">
-              Payment Options
-            </p>
-
-            <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3">
-
-              {payments.map((payment, index) => (
-
-                <div
-                  key={`${payment.name}-${index}`}
-                  className="h-10 min-w-[68px] sm:min-w-[78px] px-3 border border-white/10 bg-white/[0.02] flex items-center justify-center"
-                  title={payment.name}
-                >
-
-                  {payment.image ? (
-                    <img
-                      src={payment.image}
-                      alt={payment.name}
-                      className="max-w-[60px] max-h-[25px] object-contain"
-                    />
-                  ) : (
-                    <span className="text-[8px] tracking-wider text-gray-400">
-                      {payment.name}
-                    </span>
+                    }
                   )}
 
                 </div>
 
-              ))}
+              </div>
+
+            )}
+
+          </div>
+
+
+          {/* COMPANY */}
+
+          <div>
+
+            <p className="text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-6">
+              Company
+            </p>
+
+            <div className="flex flex-col gap-3">
+
+              {companyLinks.map(
+                link => (
+
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-sm text-gray-400 hover:text-white transition-colors font-light"
+                  >
+                    {link.label}
+                  </Link>
+
+                )
+              )}
+
+            </div>
+
+          </div>
+
+
+          {/* CATEGORIES */}
+
+          <div>
+
+            <p className="text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-6">
+              Categories
+            </p>
+
+            <div className="flex flex-col gap-3">
+
+              {categories.map(
+                cat => (
+
+                  <Link
+                    key={cat.slug}
+                    href={`/shop?category=${cat.slug}`}
+                    className="text-sm text-gray-400 hover:text-white transition-colors font-light"
+                  >
+                    {cat.label}
+                  </Link>
+
+                )
+              )}
+
+            </div>
+
+          </div>
+
+
+          {/* RIGHT */}
+
+          <div>
+
+            {/* NEWSLETTER */}
+
+            <p className="text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-4">
+              Newsletter
+            </p>
+
+            <div className="flex border border-white/10">
+
+              <input
+                type="email"
+                placeholder="Your email"
+                className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder-gray-600 outline-none"
+              />
+
+              <button className="bg-white text-black px-4 py-3 text-[10px] tracking-widest uppercase font-medium hover:bg-gray-200 transition-colors">
+                Join
+              </button>
+
+            </div>
+
+
+            {/* PAYMENT */}
+
+            <div className="mt-8">
+
+              <p className="text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-4">
+                Payment Options
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+
+                {[
+                  'VISA',
+                  'Mastercard',
+                  'AMEX',
+                  'bKash',
+                  'Nagad',
+                  'COD',
+                ].map(
+                  payment => (
+
+                    <div
+                      key={payment}
+                      className="h-9 min-w-[55px] px-3 border border-white/10 flex items-center justify-center"
+                    >
+
+                      <span className="text-[9px] tracking-wider text-gray-400">
+                        {payment}
+                      </span>
+
+                    </div>
+
+                  )
+                )}
+
+              </div>
+
+            </div>
+
+
+            {/* APPS */}
+
+            <div className="mt-8">
+
+              <p className="text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-4">
+                Get The App
+              </p>
+
+              <div className="grid grid-cols-2 gap-2">
+
+                <a
+                  href="#"
+                  className="border border-white/10 px-3 py-3 hover:border-white/30 transition-colors"
+                >
+
+                  <span className="block text-[8px] tracking-widest uppercase text-gray-500">
+                    Download on
+                  </span>
+
+                  <span className="text-xs text-white">
+                    App Store ↗
+                  </span>
+
+                </a>
+
+                <a
+                  href="#"
+                  className="border border-white/10 px-3 py-3 hover:border-white/30 transition-colors"
+                >
+
+                  <span className="block text-[8px] tracking-widest uppercase text-gray-500">
+                    Get it on
+                  </span>
+
+                  <span className="text-xs text-white">
+                    Google Play ↗
+                  </span>
+
+                </a>
+
+              </div>
 
             </div>
 
@@ -414,16 +423,26 @@ export default function Footer() {
         </div>
 
 
-        {/* =========================================
-            COPYRIGHT
-        ========================================= */}
-        <div className="border-t border-white/10 py-7 flex flex-col md:flex-row justify-between items-center gap-4">
+        {/* PAYMENT / NEWSLETTER SUPPORT ROW */}
 
-          <p className="text-[10px] sm:text-xs text-gray-600 tracking-wider text-center md:text-left">
-            © 2026 VELSARIO | All Rights Reserved
+        <div className="border-t border-white/10 mt-14 pt-8 flex flex-col items-center justify-center">
+
+          <p className="text-[9px] tracking-[0.3em] uppercase text-gray-600">
+            Secure payments • Fast delivery • Premium quality
           </p>
 
-          <p className="text-[10px] sm:text-xs text-gray-600 tracking-[0.18em] uppercase text-center md:text-right">
+        </div>
+
+
+        {/* COPYRIGHT */}
+
+        <div className="border-t border-white/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+
+          <p className="text-[10px] text-gray-600 tracking-wider text-center md:text-left">
+            {settings.footerCopyright}
+          </p>
+
+          <p className="text-[10px] text-gray-600 tracking-[0.25em] uppercase text-center md:text-right">
             Minimal Colors. Maximum Impact.
           </p>
 
