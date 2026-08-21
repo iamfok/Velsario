@@ -343,12 +343,6 @@ export default function Navbar() {
         150
       : settings.headerLogoWhiteWidth ||
         150
-
-  const textColor =
-    isScrolled
-      ? 'text-v-black'
-      : 'text-white'
-
   return (
     <>
       {/* =================================
