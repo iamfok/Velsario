@@ -9,6 +9,9 @@ export const metadata: Metadata = {
     'Premium formal wear for men and women — crafted in pure black & white, built for those who mean business.',
   keywords:
     'Velsario, formal wear, black white fashion, premium clothing Bangladesh',
+  icons: {
+    icon: '/favicon.ico',
+  },
   openGraph: {
     title: 'Velsario — Minimal Colors. Maximum Impact.',
     description: 'Premium formal wear for men and women.',
