@@ -342,9 +342,6 @@ export default function Navbar() {
       ? settings.headerLogoBlackWidth || 150
       : settings.headerLogoWhiteWidth || 150
 
-  if (settings.headerEnabled === false) {
-    return null
-  }
 
   return (
     <>
