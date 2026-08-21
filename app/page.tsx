@@ -7,6 +7,10 @@ import { ArrowRight, Shield, Truck, RefreshCw, MapPin } from 'lucide-react'
 export default function HomePage() {
   const featuredProducts = products.slice(0, 3)
 
+  const heroBanners = getActiveBanners('Homepage Hero')
+  const secondaryBanners = getActiveBanners('Homepage Secondary')
+  const bottomBanners = getActiveBanners('Homepage Bottom')
+
   const menCategories = [
     { name: "Men's Shirt", image: 'https://velsario.com/wp-content/uploads/2026/03/menu-m-shirt-700x1024.jpg', slug: 'velsario-shirt', filter: 'men-shirt' },
     { name: "Men's Pants", image: 'https://velsario.com/wp-content/uploads/2026/03/menu-m-pants-700x1024.jpg', slug: 'velsario-pants', filter: '' },
@@ -24,36 +28,92 @@ export default function HomePage() {
   return (
     <div className="overflow-hidden">
 
-      {/* HERO */}
-      <section className="relative min-h-screen flex items-center justify-center bg-v-black text-v-white">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black opacity-90" />
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white opacity-3 rounded-full blur-3xl" />
-        </div>
-        <div className="relative z-10 text-center px-4 md:px-8 max-w-5xl mx-auto pt-20">
-          <p className="section-label text-gray-400 mb-8">Minimal colors. Maximum impact</p>
-          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-400 leading-tight mb-8">
-            Effortlessly blend
-            <br />
-            <em>comfort & style</em>
-          </h1>
-          <p className="text-gray-400 text-lg font-light max-w-2xl mx-auto mb-12 leading-relaxed">
-            Premium formal wear for men and women — crafted in pure black & white, 
-            built for those who mean business, who value presence, precision, and timeless style.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/shop" className="btn-white">
-              Explore the Collection
-            </Link>
-            <Link href="/shop?category=velsario-shirt" className="btn-secondary border-gray-600 text-gray-300 hover:bg-white hover:text-black">
-              Shop Shirts
-            </Link>
-          </div>
-        </div>
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="w-px h-12 bg-gray-600 mx-auto" />
-        </div>
-      </section>
+   {/* HERO */}
+{heroBanners.length > 0 && (
+  <section className="relative min-h-screen flex items-center justify-center bg-v-black text-v-white overflow-hidden">
+
+    {/* Background */}
+    <div className="absolute inset-0">
+
+      {heroBanners[0].type === 'video' && heroBanners[0].videoUrl ? (
+        <video
+          src={heroBanners[0].videoUrl}
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <picture className="w-full h-full block">
+          {heroBanners[0].mobileImage && (
+            <source
+              media="(max-width: 767px)"
+              srcSet={heroBanners[0].mobileImage}
+            />
+          )}
+
+          <img
+            src={heroBanners[0].desktopImage}
+            alt={heroBanners[0].title}
+            className="w-full h-full object-cover"
+          />
+        </picture>
+      )}
+
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/50" />
+
+    </div>
+
+    {/* Content */}
+    <div className="relative z-10 text-center px-4 md:px-8 max-w-5xl mx-auto pt-20">
+
+      <p className="section-label text-gray-300 mb-8">
+        Minimal colors. Maximum impact
+      </p>
+
+      {heroBanners[0].heading && (
+        <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-400 leading-tight mb-8">
+          {heroBanners[0].heading}
+        </h1>
+      )}
+
+      {heroBanners[0].subheading && (
+        <p className="text-gray-300 text-lg font-light max-w-2xl mx-auto mb-12 leading-relaxed">
+          {heroBanners[0].subheading}
+        </p>
+      )}
+
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+
+        {heroBanners[0].buttonText && heroBanners[0].buttonUrl && (
+          <Link
+            href={heroBanners[0].buttonUrl}
+            className="btn-white"
+          >
+            {heroBanners[0].buttonText}
+          </Link>
+        )}
+
+        <Link
+          href="/shop?category=velsario-shirt"
+          className="btn-secondary border-gray-600 text-gray-300 hover:bg-white hover:text-black"
+        >
+          Shop Shirts
+        </Link>
+
+      </div>
+
+    </div>
+
+    {/* Scroll Indicator */}
+    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+      <div className="w-px h-12 bg-gray-300 mx-auto" />
+    </div>
+
+  </section>
+)}
 
       {/* MOST POPULAR */}
       <section className="py-20 md:py-28 px-4 md:px-8 max-w-7xl mx-auto">
