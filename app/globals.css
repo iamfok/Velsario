@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,9 +7,14 @@
 :root {
   --v-black: #0A0A0A;
   --v-white: #FAFAFA;
-  --v-gray: #888888;
-  --v-light: #F0F0F0;
-  --v-border: #E0E0E0;
+  --v-gray: #777777;
+  --v-light: #F1F1F1;
+  --v-border: #E1E1E1;
+
+  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'Playfair Display', serif;
+
+  color-scheme: light;
 }
 
 * {
@@ -20,36 +25,82 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   background-color: var(--v-white);
   color: var(--v-black);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+::selection {
+  background: var(--v-black);
+  color: var(--v-white);
+}
+
+/* =========================================================
+   TYPOGRAPHY
+========================================================= */
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
 }
 
 @layer components {
+
+  /* Buttons */
+
   .btn-primary {
-    @apply bg-v-black text-v-white px-8 py-3 text-xs tracking-widest2 uppercase font-medium hover:bg-v-gray transition-colors duration-300;
+    @apply bg-v-black text-v-white px-6 sm:px-8 py-3 text-[10px] sm:text-xs tracking-widest uppercase font-medium hover:bg-v-gray transition-all duration-300;
   }
-  
+
   .btn-secondary {
-    @apply border border-v-black text-v-black px-8 py-3 text-xs tracking-widest2 uppercase font-medium hover:bg-v-black hover:text-v-white transition-all duration-300;
+    @apply border border-v-black text-v-black px-6 sm:px-8 py-3 text-[10px] sm:text-xs tracking-widest uppercase font-medium hover:bg-v-black hover:text-v-white transition-all duration-300;
   }
 
   .btn-white {
-    @apply bg-v-white text-v-black px-8 py-3 text-xs tracking-widest2 uppercase font-medium hover:bg-v-light transition-colors duration-300;
+    @apply bg-v-white text-v-black px-6 sm:px-8 py-3 text-[10px] sm:text-xs tracking-widest uppercase font-medium hover:bg-v-light transition-all duration-300;
   }
+
+  /* Section label */
 
   .section-label {
-    @apply text-xs tracking-widest3 uppercase text-v-gray font-medium;
+    @apply text-[10px] sm:text-xs tracking-widest uppercase text-v-gray font-medium;
   }
 
+  /* Headings */
+
   .display-heading {
-    @apply font-display text-4xl md:text-6xl lg:text-7xl font-400 leading-tight;
+    @apply font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal leading-tight;
   }
+
+  /* Product */
 
   .product-card {
     @apply relative overflow-hidden cursor-pointer;
@@ -63,33 +114,211 @@ body {
     @apply transition-transform duration-700 ease-out;
   }
 
-  .nav-link {
-    @apply text-xs tracking-widest uppercase text-v-black hover:text-v-gray transition-colors duration-200 font-medium;
-  }
+  /* Inputs */
 
   .input-field {
     @apply w-full border border-v-border px-4 py-3 text-sm focus:outline-none focus:border-v-black transition-colors bg-transparent;
   }
+
+  /* Header */
+
+  .header-control {
+    @apply text-[10px] sm:text-xs tracking-[0.16em] uppercase font-medium transition-all duration-300;
+  }
+
+  .header-light {
+    color: white;
+  }
+
+  .header-dark {
+    color: var(--v-black);
+  }
+
+  .header-control:hover {
+    opacity: 0.55;
+  }
+
+  .header-icon {
+    @apply w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center transition-all duration-300;
+  }
+
+  .header-icon:hover {
+    opacity: 0.55;
+    transform: translateY(-1px);
+  }
+
+  /* Catalog */
+
+  .catalog-menu {
+    animation: catalogReveal 280ms cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .catalog-link {
+    @apply flex items-center justify-between gap-4 py-3.5 px-2 border-b border-v-border text-xs sm:text-sm transition-all duration-200;
+  }
+
+  .catalog-link:hover {
+    @apply pl-4 bg-v-light;
+  }
+
+  .catalog-link svg {
+    @apply opacity-0 -translate-x-2 transition-all duration-200;
+  }
+
+  .catalog-link:hover svg {
+    @apply opacity-100 translate-x-0;
+  }
+
+  /* Mobile menu */
+
+  .mobile-menu-link {
+    @apply flex items-center justify-between py-4 border-b border-v-border text-sm transition-all duration-300;
+  }
+
+  .mobile-menu-link:hover {
+    @apply pl-2;
+  }
+
+  .mobile-main-link {
+    @apply py-3 text-sm tracking-wide hover:opacity-50 transition-opacity;
+  }
+
+  /* Footer */
+
+  .footer-heading {
+    @apply text-[10px] tracking-[0.2em] uppercase text-gray-500 mb-5;
+  }
+
+  .footer-link {
+    @apply text-sm text-gray-400 hover:text-v-white hover:translate-x-1 transition-all duration-200 font-light;
+  }
+
+  .footer-social {
+    @apply w-9 h-9 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:border-white/40 hover:-translate-y-1 transition-all duration-300;
+  }
+
+  .footer-social-disabled {
+    @apply opacity-40 cursor-default;
+  }
+
+  .app-download {
+    @apply flex items-center justify-between gap-4 border border-white/10 px-4 py-3 hover:border-white/40 hover:bg-white/[0.03] transition-all duration-300;
+  }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes catalogReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
 ::-webkit-scrollbar-track {
   background: var(--v-light);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--v-gray);
 }
 
-/* Page transition */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--v-black);
+}
+
+/* Firefox */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--v-gray) var(--v-light);
+}
+
+/* =========================================================
+   PAGE TRANSITION
+========================================================= */
+
 .page-enter {
   opacity: 0;
   transform: translateY(8px);
 }
+
 .page-enter-active {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 400ms, transform 400ms;
+  transition:
+    opacity 400ms ease,
+    transform 400ms ease;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 767px) {
+
+  body {
+    font-size: 14px;
+  }
+
+  .catalog-link svg {
+    opacity: 1;
+    transform: none;
+  }
+
+  .footer-link:hover {
+    transform: none;
+  }
+
+  .product-card:hover .product-image {
+    transform: none;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
