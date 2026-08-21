@@ -30,18 +30,6 @@ type Settings = {
   socialLinks?: SocialLink[]
 }
 
-const defaultSettings: Settings = {
-  footerEnabled: true,
-  footerLogoEnabled: true,
-  footerLogo: '',
-  footerLogoWidth: 190,
-  footerText:
-    'Our journey began with a simple yet powerful vision — to redefine the way men & women experience fashion.',
-  footerCopyright:
-    '© 2026 VELSARIO | All Rights Reserved',
-  socialLinks: [],
-}
-
 const socialIcons: Record<
   string,
   React.ElementType
@@ -91,7 +79,7 @@ const categories = [
 export default function Footer() {
 
   const [settings, setSettings] =
-    useState<Settings>(defaultSettings)
+    useState<Settings>({})
 
   useEffect(() => {
 
@@ -105,12 +93,7 @@ export default function Footer() {
           )
 
         if (saved) {
-
-          setSettings({
-            ...defaultSettings,
-            ...JSON.parse(saved),
-          })
-
+          setSettings(JSON.parse(saved))
         }
 
       } catch {}
@@ -124,11 +107,12 @@ export default function Footer() {
       loadSettings
     )
 
-    return () =>
+    return () => {
       window.removeEventListener(
         'velsario-settings-updated',
         loadSettings
       )
+    }
 
   }, [])
 
@@ -148,26 +132,28 @@ export default function Footer() {
     <footer className="relative overflow-hidden bg-[#080808] text-white">
 
       {/* STRUCTURAL BACKGROUND */}
-
       <div className="absolute inset-0 pointer-events-none">
 
-        <div className="absolute -right-40 top-20 w-[500px] h-[500px] rounded-full border border-white/[0.04]" />
+        <div className="absolute right-[-160px] bottom-[-180px] w-[520px] h-[520px] rounded-full border border-white/[0.035]" />
 
-        <div className="absolute -right-20 top-40 w-[420px] h-[420px] rounded-full border border-white/[0.03]" />
+        <div className="absolute right-[-90px] bottom-[-110px] w-[420px] h-[420px] rounded-full border border-white/[0.025]" />
 
-        <div className="absolute left-0 bottom-0 w-[300px] h-[300px] rounded-full border border-white/[0.03]" />
+        <div className="absolute left-[-180px] top-[-180px] w-[360px] h-[360px] rounded-full border border-white/[0.025]" />
 
       </div>
 
 
-      <div className="relative max-w-7xl mx-auto px-5 md:px-8 py-16 md:py-20">
+      <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-20">
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-10">
+
+        {/* MAIN FOOTER ARCHITECTURE */}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
 
 
           {/* BRAND */}
 
-          <div>
+          <div className="md:col-span-1">
 
             {settings.footerLogoEnabled !== false &&
             settings.footerLogo ? (
@@ -197,51 +183,55 @@ export default function Footer() {
 
             )}
 
-
-            <p className="mt-5 text-sm text-gray-400 leading-relaxed font-light max-w-xs">
-              {settings.footerText}
+            <p className="mt-4 text-sm text-gray-400 leading-relaxed font-light max-w-xs">
+              {settings.footerText ||
+                'Our journey began with a simple yet powerful vision — to redefine the way men & women experience fashion.'}
             </p>
 
 
-            {/* SOCIAL */}
+            {/* ONLY ACTIVE SOCIAL MEDIA */}
 
             {activeSocials.length > 0 && (
 
-              <div className="mt-7">
+              <div className="mt-6">
 
-                <p className="text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-4">
+                <p className="text-xs tracking-widest uppercase text-gray-500 mb-4">
                   Follow Velsario
                 </p>
 
                 <div className="flex flex-wrap gap-2">
 
-                  {activeSocials.map(
-                    social => {
+                  {activeSocials.map((social) => {
 
-                      const Icon =
-                        socialIcons[
-                          social.platform
-                        ] || MessageCircle
+                    const Icon =
+                      socialIcons[
+                        social.platform
+                      ] || MessageCircle
 
-                      return (
+                    return (
+                      <a
+                        key={social.id}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={social.platform}
+                        className="
+                          w-10 h-10
+                          border border-white/10
+                          flex items-center justify-center
+                          text-gray-400
+                          hover:text-white
+                          hover:border-white/40
+                          hover:bg-white/[0.05]
+                          transition-all
+                          duration-300
+                        "
+                      >
+                        <Icon size={17} />
+                      </a>
+                    )
 
-                        <a
-                          key={social.id}
-                          href={social.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={
-                            social.platform
-                          }
-                          className="w-10 h-10 border border-white/10 flex items-center justify-center text-gray-400 hover:bg-white hover:text-black hover:border-white transition-all duration-300"
-                        >
-                          <Icon size={16} />
-                        </a>
-
-                      )
-
-                    }
-                  )}
+                  })}
 
                 </div>
 
@@ -256,25 +246,23 @@ export default function Footer() {
 
           <div>
 
-            <p className="text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-6">
+            <p className="text-xs tracking-widest uppercase text-gray-500 mb-6">
               Company
             </p>
 
             <div className="flex flex-col gap-3">
 
-              {companyLinks.map(
-                link => (
+              {companyLinks.map((link) => (
 
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-sm text-gray-400 hover:text-white transition-colors font-light"
-                  >
-                    {link.label}
-                  </Link>
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm text-gray-400 hover:text-white transition-colors font-light"
+                >
+                  {link.label}
+                </Link>
 
-                )
-              )}
+              ))}
 
             </div>
 
@@ -285,100 +273,83 @@ export default function Footer() {
 
           <div>
 
-            <p className="text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-6">
+            <p className="text-xs tracking-widest uppercase text-gray-500 mb-6">
               Categories
             </p>
 
             <div className="flex flex-col gap-3">
 
-              {categories.map(
-                cat => (
+              {categories.map((cat) => (
 
-                  <Link
-                    key={cat.slug}
-                    href={`/shop?category=${cat.slug}`}
-                    className="text-sm text-gray-400 hover:text-white transition-colors font-light"
-                  >
-                    {cat.label}
-                  </Link>
+                <Link
+                  key={cat.slug}
+                  href={`/shop?category=${cat.slug}`}
+                  className="text-sm text-gray-400 hover:text-white transition-colors font-light"
+                >
+                  {cat.label}
+                </Link>
 
-                )
-              )}
+              ))}
 
             </div>
 
           </div>
 
 
-          {/* RIGHT */}
+          {/* RIGHT COLUMN */}
 
           <div>
 
             {/* NEWSLETTER */}
 
-            <p className="text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-4">
+            <p className="text-xs tracking-widest uppercase text-gray-500 mb-3">
               Newsletter
             </p>
 
-            <div className="flex border border-white/10">
+            <div className="flex w-full">
 
               <input
                 type="email"
                 placeholder="Your email"
-                className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder-gray-600 outline-none"
+                className="
+                  min-w-0
+                  flex-1
+                  bg-transparent
+                  border border-gray-700
+                  px-4 py-3
+                  text-sm
+                  text-white
+                  placeholder-gray-600
+                  focus:outline-none
+                  focus:border-gray-500
+                "
               />
 
-              <button className="bg-white text-black px-4 py-3 text-[10px] tracking-widest uppercase font-medium hover:bg-gray-200 transition-colors">
+              <button
+                className="
+                  bg-white
+                  text-black
+                  px-4
+                  py-3
+                  text-xs
+                  tracking-wider
+                  uppercase
+                  font-medium
+                  hover:bg-gray-200
+                  transition-colors
+                "
+              >
                 Join
               </button>
 
             </div>
 
 
-            {/* PAYMENT */}
+            {/* APPS — SIDE BY SIDE */}
 
             <div className="mt-8">
 
-              <p className="text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-4">
-                Payment Options
-              </p>
-
-              <div className="flex flex-wrap gap-2">
-
-                {[
-                  'VISA',
-                  'Mastercard',
-                  'AMEX',
-                  'bKash',
-                  'Nagad',
-                  'COD',
-                ].map(
-                  payment => (
-
-                    <div
-                      key={payment}
-                      className="h-9 min-w-[55px] px-3 border border-white/10 flex items-center justify-center"
-                    >
-
-                      <span className="text-[9px] tracking-wider text-gray-400">
-                        {payment}
-                      </span>
-
-                    </div>
-
-                  )
-                )}
-
-              </div>
-
-            </div>
-
-
-            {/* APPS */}
-
-            <div className="mt-8">
-
-              <p className="text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-4">
+              <p className="text-xs tracking-widest uppercase text-gray-500 mb-4">
                 Get The App
               </p>
 
@@ -386,29 +357,40 @@ export default function Footer() {
 
                 <a
                   href="#"
-                  className="border border-white/10 px-3 py-3 hover:border-white/30 transition-colors"
+                  className="
+                    border border-white/10
+                    px-3 py-3
+                    hover:border-white/30
+                    transition-colors
+                  "
                 >
 
                   <span className="block text-[8px] tracking-widest uppercase text-gray-500">
                     Download on
                   </span>
 
-                  <span className="text-xs text-white">
+                  <span className="text-sm text-white">
                     App Store ↗
                   </span>
 
                 </a>
 
+
                 <a
                   href="#"
-                  className="border border-white/10 px-3 py-3 hover:border-white/30 transition-colors"
+                  className="
+                    border border-white/10
+                    px-3 py-3
+                    hover:border-white/30
+                    transition-colors
+                  "
                 >
 
                   <span className="block text-[8px] tracking-widest uppercase text-gray-500">
                     Get it on
                   </span>
 
-                  <span className="text-xs text-white">
+                  <span className="text-sm text-white">
                     Google Play ↗
                   </span>
 
@@ -423,26 +405,81 @@ export default function Footer() {
         </div>
 
 
-        {/* PAYMENT / NEWSLETTER SUPPORT ROW */}
+        {/* PAYMENT ROW — EXACTLY ABOVE COPYRIGHT */}
 
-        <div className="border-t border-white/10 mt-14 pt-8 flex flex-col items-center justify-center">
+        <div className="border-t border-gray-800 mt-14 pt-8">
 
-          <p className="text-[9px] tracking-[0.3em] uppercase text-gray-600">
-            Secure payments • Fast delivery • Premium quality
-          </p>
+          <div className="flex flex-col items-center">
+
+            <p className="text-xs tracking-widest uppercase text-gray-500 mb-5">
+              Payment Options
+            </p>
+
+            <div className="flex flex-wrap justify-center gap-2">
+
+              {/* VISA */}
+              <div className="h-9 min-w-[64px] px-4 border border-gray-800 flex items-center justify-center">
+                <span className="font-semibold italic text-xs text-gray-400">
+                  VISA
+                </span>
+              </div>
+
+              {/* MASTERCARD */}
+              <div className="h-9 min-w-[78px] px-3 border border-gray-800 flex items-center justify-center">
+                <div className="flex items-center gap-1">
+                  <span className="w-3.5 h-3.5 rounded-full bg-gray-500/70" />
+                  <span className="w-3.5 h-3.5 rounded-full bg-gray-400/50 -ml-2" />
+                  <span className="text-[8px] text-gray-400 ml-1">
+                    Mastercard
+                  </span>
+                </div>
+              </div>
+
+              {/* AMEX */}
+              <div className="h-9 min-w-[64px] px-4 border border-gray-800 flex items-center justify-center">
+                <span className="font-semibold text-[10px] text-gray-400">
+                  AMEX
+                </span>
+              </div>
+
+              {/* BKASH */}
+              <div className="h-9 min-w-[64px] px-4 border border-gray-800 flex items-center justify-center">
+                <span className="font-semibold text-[10px] text-gray-400">
+                  bKash
+                </span>
+              </div>
+
+              {/* NAGAD */}
+              <div className="h-9 min-w-[64px] px-4 border border-gray-800 flex items-center justify-center">
+                <span className="font-semibold text-[10px] text-gray-400">
+                  Nagad
+                </span>
+              </div>
+
+              {/* COD */}
+              <div className="h-9 min-w-[64px] px-4 border border-gray-800 flex items-center justify-center">
+                <span className="font-semibold text-[9px] text-gray-400">
+                  COD
+                </span>
+              </div>
+
+            </div>
+
+          </div>
 
         </div>
 
 
-        {/* COPYRIGHT */}
+        {/* COPYRIGHT — SAME ARCHITECTURE */}
 
-        <div className="border-t border-white/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
 
-          <p className="text-[10px] text-gray-600 tracking-wider text-center md:text-left">
-            {settings.footerCopyright}
+          <p className="text-xs text-gray-600 tracking-wider text-center md:text-left">
+            {settings.footerCopyright ||
+              '© 2026 VELSARIO | All Rights Reserved'}
           </p>
 
-          <p className="text-[10px] text-gray-600 tracking-[0.25em] uppercase text-center md:text-right">
+          <p className="text-xs text-gray-600 tracking-widest uppercase text-center md:text-right">
             Minimal Colors. Maximum Impact.
           </p>
 
