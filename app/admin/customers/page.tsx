@@ -1,35 +1,75 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Eye, Mail, Phone } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import {
+  Search,
+  Eye,
+  Mail,
+  Phone,
+} from 'lucide-react'
+import Link from 'next/link'
 
-const initialCustomers = [
-  {
-    id: 'CUS-001',
-    name: 'No customers yet',
-    email: '—',
-    phone: '—',
-    orders: 0,
-    spent: 0,
-    status: 'Active',
-  },
-]
+type Customer = {
+  id: string
+  name: string
+  email: string
+  phone: string
+  orders: number
+  spent: number
+  status: 'Active' | 'Inactive'
+}
+
+const defaultCustomers: Customer[] = []
 
 export default function CustomersPage() {
-  const [customers] = useState(initialCustomers)
-  const [search, setSearch] = useState('')
 
-  const filtered = customers.filter(
-    (customer) =>
-      customer.name.toLowerCase().includes(search.toLowerCase()) ||
-      customer.email.toLowerCase().includes(search.toLowerCase()) ||
-      customer.phone.toLowerCase().includes(search.toLowerCase())
-  )
+  const [customers, setCustomers] =
+    useState<Customer[]>([])
+
+  const [search, setSearch] =
+    useState('')
+
+  const [loading, setLoading] =
+    useState(true)
+
+  useEffect(() => {
+
+    try {
+
+      const saved =
+        localStorage.getItem(
+          'velsario-customers'
+        )
+
+      if (saved) {
+        setCustomers(
+          JSON.parse(saved)
+        )
+      } else {
+        setCustomers(defaultCustomers)
+      }
+
+    } catch {
+      setCustomers([])
+    }
+
+    setLoading(false)
+
+  }, [])
+
+  const filtered =
+    customers.filter(customer =>
+      `${customer.name} ${customer.email} ${customer.phone} ${customer.id}`
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    )
 
   return (
-    <div>
+
+    <div className="max-w-7xl mx-auto">
 
       {/* HEADER */}
+
       <div className="mb-8">
 
         <p className="text-xs tracking-widest uppercase text-v-gray mb-2">
@@ -46,7 +86,9 @@ export default function CustomersPage() {
 
       </div>
 
+
       {/* SEARCH */}
+
       <div className="bg-white border border-v-border p-4 mb-6">
 
         <div className="relative">
@@ -60,7 +102,9 @@ export default function CustomersPage() {
             type="text"
             placeholder="Search customers..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e =>
+              setSearch(e.target.value)
+            }
             className="w-full border border-v-border px-10 py-3 text-sm outline-none focus:border-black"
           />
 
@@ -68,133 +112,220 @@ export default function CustomersPage() {
 
       </div>
 
+
       {/* TABLE */}
+
       <div className="bg-white border border-v-border overflow-hidden">
 
-        <div className="overflow-x-auto">
+        {loading ? (
 
-          <table className="w-full min-w-[900px]">
+          <div className="text-center py-20">
 
-            <thead>
+            <p className="text-sm text-v-gray">
+              Loading customers...
+            </p>
 
-              <tr className="border-b border-v-border bg-v-light">
+          </div>
 
-                <th className="text-left px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
-                  Customer
-                </th>
+        ) : filtered.length > 0 ? (
 
-                <th className="text-left px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
-                  Contact
-                </th>
+          <div className="overflow-x-auto">
 
-                <th className="text-left px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
-                  Orders
-                </th>
+            <table className="w-full min-w-[950px]">
 
-                <th className="text-left px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
-                  Total Spent
-                </th>
+              <thead>
 
-                <th className="text-left px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
-                  Status
-                </th>
+                <tr className="border-b border-v-border bg-v-light">
 
-                <th className="text-right px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
-                  Action
-                </th>
+                  <th className="text-left px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
+                    Customer
+                  </th>
 
-              </tr>
+                  <th className="text-left px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
+                    Contact
+                  </th>
 
-            </thead>
+                  <th className="text-left px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
+                    Orders
+                  </th>
 
-            <tbody className="divide-y divide-v-border">
+                  <th className="text-left px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
+                    Total Spent
+                  </th>
 
-              {filtered.map((customer) => (
+                  <th className="text-left px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
+                    Status
+                  </th>
 
-                <tr
-                  key={customer.id}
-                  className="hover:bg-v-light transition-colors"
-                >
-
-                  <td className="px-6 py-4">
-
-                    <p className="text-sm font-medium">
-                      {customer.name}
-                    </p>
-
-                    <p className="text-xs text-v-gray mt-1">
-                      {customer.id}
-                    </p>
-
-                  </td>
-
-                  <td className="px-6 py-4">
-
-                    <div className="space-y-1">
-
-                      <p className="text-xs flex items-center gap-2">
-                        <Mail size={12} />
-                        {customer.email}
-                      </p>
-
-                      <p className="text-xs flex items-center gap-2">
-                        <Phone size={12} />
-                        {customer.phone}
-                      </p>
-
-                    </div>
-
-                  </td>
-
-                  <td className="px-6 py-4 text-sm">
-                    {customer.orders}
-                  </td>
-
-                  <td className="px-6 py-4 text-sm font-medium">
-                    ৳{customer.spent.toLocaleString()}
-                  </td>
-
-                  <td className="px-6 py-4">
-
-                    <span className="text-xs px-2 py-1 bg-green-50 text-green-600">
-                      {customer.status}
-                    </span>
-
-                  </td>
-
-                  <td className="px-6 py-4">
-
-                    <div className="flex justify-end">
-
-                      <button
-                        className="p-2 text-v-gray hover:text-v-black"
-                        title="View customer"
-                      >
-                        <Eye size={15} />
-                      </button>
-
-                    </div>
-
-                  </td>
+                  <th className="text-right px-6 py-4 text-xs tracking-widest uppercase text-v-gray font-medium">
+                    Action
+                  </th>
 
                 </tr>
 
-              ))}
+              </thead>
 
-            </tbody>
 
-          </table>
+              <tbody className="divide-y divide-v-border">
 
-        </div>
+                {filtered.map(customer => (
 
-        {filtered.length === 0 && (
-          <div className="text-center py-16 text-sm text-v-gray">
-            No customers found.
+                  <tr
+                    key={customer.id}
+                    className="hover:bg-v-light transition-colors"
+                  >
+
+                    {/* CUSTOMER */}
+
+                    <td className="px-6 py-4">
+
+                      <p className="text-sm font-medium">
+                        {customer.name}
+                      </p>
+
+                      <p className="text-xs text-v-gray mt-1">
+                        {customer.id}
+                      </p>
+
+                    </td>
+
+
+                    {/* CONTACT */}
+
+                    <td className="px-6 py-4">
+
+                      <div className="space-y-1">
+
+                        <p className="text-xs flex items-center gap-2">
+
+                          <Mail size={12} />
+
+                          {customer.email}
+
+                        </p>
+
+                        <p className="text-xs flex items-center gap-2">
+
+                          <Phone size={12} />
+
+                          {customer.phone}
+
+                        </p>
+
+                      </div>
+
+                    </td>
+
+
+                    {/* ORDERS */}
+
+                    <td className="px-6 py-4 text-sm">
+                      {customer.orders}
+                    </td>
+
+
+                    {/* SPENT */}
+
+                    <td className="px-6 py-4 text-sm font-medium">
+                      ৳{customer.spent.toLocaleString()}
+                    </td>
+
+
+                    {/* STATUS */}
+
+                    <td className="px-6 py-4">
+
+                      <span
+                        className={`text-xs px-2 py-1 ${
+                          customer.status === 'Active'
+                            ? 'bg-green-50 text-green-600'
+                            : 'bg-gray-100 text-gray-500'
+                        }`}
+                      >
+                        {customer.status}
+                      </span>
+
+                    </td>
+
+
+                    {/* ACTION */}
+
+                    <td className="px-6 py-4">
+
+                      <div className="flex justify-end">
+
+                        <Link
+                          href={`/admin/customers/${customer.id}`}
+                          className="p-2 text-v-gray hover:text-v-black hover:bg-gray-100"
+                          title="View customer"
+                        >
+                          <Eye size={15} />
+                        </Link>
+
+                      </div>
+
+                    </td>
+
+                  </tr>
+
+                ))}
+
+              </tbody>
+
+            </table>
+
           </div>
+
+        ) : (
+
+          /* EMPTY */
+
+          <div className="text-center py-20 px-6">
+
+            <div className="w-14 h-14 bg-gray-50 mx-auto flex items-center justify-center mb-5">
+
+              <Search
+                size={22}
+                className="text-gray-400"
+              />
+
+            </div>
+
+            <h2 className="text-lg font-medium">
+              {search
+                ? 'No customers found'
+                : 'No customers yet'}
+            </h2>
+
+            <p className="text-sm text-v-gray mt-2 max-w-md mx-auto">
+
+              {search
+                ? 'Try searching with a different name, email or phone number.'
+                : 'Customers created through your Velsario store will appear here.'}
+
+            </p>
+
+          </div>
+
         )}
 
       </div>
 
+
+      {/* TOTAL */}
+
+      {!loading && customers.length > 0 && (
+
+        <div className="mt-4 text-xs text-v-gray">
+
+          Showing {filtered.length} of{' '}
+          {customers.length} customers
+
+        </div>
+
+      )}
+
     </div>
+
   )
 }
