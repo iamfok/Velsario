@@ -567,7 +567,8 @@ export default function HomePage() {
               <em>{bottomBanners[0]?.subheading || 'fashion reinvented!'}</em>
             </h2>
             <p className="mb-8 mt-6 font-light text-gray-300">
-              {bottomBanners[0]?.description || 'Dive into a world of style with our latest collection!'}
+               Dive into a world of style with our latest collection!
+              
             </p>
             <Link href={bottomBanners[0]?.buttonUrl || '/shop'} className="btn-white">
               {bottomBanners[0]?.buttonText || 'Shop Now'}
