@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { products } from '@/lib/products'
+import { getActiveBanners } from '@/lib/banners'
 import { ArrowRight, Shield, Truck, RefreshCw, MapPin } from 'lucide-react'
 
 export default function HomePage() {
