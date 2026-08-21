@@ -558,25 +558,22 @@ export default function CategoriesPage() {
                       <button
                         onClick={() => {
 
-                          const updated =
-                            categories.map(
-                              item =>
-                                item.id ===
-                                category.id
-                                  ? {
-                                      ...item,
-                                      status:
-                                        item.status ===
-                                        'Active'
-                                          ? 'Inactive'
-                                          : 'Active',
-                                    }
-                                  : item
-                            )
+ const updated =
+  categories.map(
+    item =>
+      item.id === category.id
+        ? {
+            ...item,
+            status:
+              item.status ===
+              'Active'
+                ? 'Inactive'
+                : 'Active',
+          }
+        : item
+  )
 
-                          saveCategories(
-                            updated
-                          )
+saveCategories(updated)
                         }}
                         className={`text-xs px-2 py-1 ${
                           category.status ===
