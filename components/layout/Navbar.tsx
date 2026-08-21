@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   Search,
@@ -8,10 +8,12 @@ import {
   Menu,
   X,
   ChevronDown,
+  ArrowRight,
 } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { products, categories } from '@/lib/products'
 
-const navCategories = [
+const fallbackCategories = [
   { name: 'Velsario Shirt', slug: 'velsario-shirt' },
   { name: 'Velsario Pants', slug: 'velsario-pants' },
   { name: 'Accessories', slug: 'accessories' },
@@ -25,378 +27,489 @@ export default function Navbar() {
   const [catalogOpen, setCatalogOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-
-  const [headerLogo, setHeaderLogo] = useState('')
-  const [headerLogoEnabled, setHeaderLogoEnabled] = useState(true)
-  const [headerEnabled, setHeaderEnabled] = useState(true)
-  const [announcementEnabled, setAnnouncementEnabled] = useState(false)
-  const [announcementText, setAnnouncementText] = useState('')
+  const searchRef = useRef<HTMLDivElement>(null)
 
   const { itemCount } = useCart()
 
-  useEffect(() => {
-    const handleScroll = () =>
-      setIsScrolled(window.scrollY > 20)
+  const navCategories = useMemo(() => {
+    if (categories && categories.length > 0) {
+      return categories.map((cat) => ({
+        name: cat.name,
+        slug: cat.slug,
+      }))
+    }
 
-    window.addEventListener(
-      'scroll',
-      handleScroll
-    )
-
-    return () =>
-      window.removeEventListener(
-        'scroll',
-        handleScroll
-      )
+    return fallbackCategories
   }, [])
 
-  /* Load settings */
   useEffect(() => {
-    const loadSettings = () => {
-      try {
-        const saved =
-          localStorage.getItem(
-            'velsario-settings'
-          )
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 30)
+    }
 
-        if (!saved) return
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
 
-        const settings = JSON.parse(saved)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
-        setHeaderLogo(
-          settings.headerLogo || ''
-        )
-
-        setHeaderLogoEnabled(
-          settings.headerLogoEnabled !== false
-        )
-
-        setHeaderEnabled(
-          settings.headerEnabled !== false
-        )
-
-        setAnnouncementEnabled(
-          settings.announcementEnabled === true
-        )
-
-        setAnnouncementText(
-          settings.announcementText || ''
-        )
-      } catch {
-        // Keep default values
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setSearchOpen(false)
       }
     }
 
-    loadSettings()
+    document.addEventListener('mousedown', handleClickOutside)
 
-    /*
-     * Update immediately when Settings
-     * are changed in another tab.
-     */
-    window.addEventListener(
-      'storage',
-      loadSettings
-    )
-
-    return () =>
-      window.removeEventListener(
-        'storage',
-        loadSettings
-      )
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [])
 
-  if (!headerEnabled) {
-    return null
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileOpen])
+
+  const normalizedSearch = searchQuery
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '')
+
+  const suggestions = useMemo(() => {
+    if (!normalizedSearch) return []
+
+    return products
+      .filter((product) => {
+        const searchable = [
+          product.name,
+          product.category,
+          product.subcategory,
+          ...(product.colors || []),
+        ]
+          .join(' ')
+          .toLowerCase()
+          .replace(/\s+/g, '')
+
+        return searchable.includes(normalizedSearch)
+      })
+      .slice(0, 5)
+  }, [normalizedSearch])
+
+  const closeMenus = () => {
+    setMobileOpen(false)
+    setCatalogOpen(false)
   }
 
   return (
     <>
-      {/* ANNOUNCEMENT BAR */}
-
-      {announcementEnabled &&
-        announcementText && (
-          <div className="fixed top-0 left-0 right-0 z-[60] bg-v-black text-v-white text-center px-4 py-2 text-xs tracking-wider">
-            {announcementText}
-          </div>
-        )}
-
-      {/* NAVBAR */}
-
       <nav
-        className={`fixed left-0 right-0 z-50 transition-all duration-300 ${
-          announcementEnabled &&
-          announcementText
-            ? 'top-8 md:top-9'
-            : 'top-0'
-        } ${
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
           isScrolled
-            ? 'bg-v-white border-b border-v-border shadow-sm'
-            : 'bg-transparent'
+            ? 'bg-v-white/95 text-v-black border-b border-v-border shadow-sm backdrop-blur-md'
+            : 'bg-transparent text-white'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-
-          <div className="flex items-center justify-between h-16 md:h-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative h-16 md:h-20 flex items-center justify-between">
 
             {/* LEFT — CATALOG */}
+            <div className="flex items-center">
 
-            <div className="hidden md:flex items-center gap-8">
-
+              {/* Desktop */}
               <div
-                className="relative group"
-                onMouseEnter={() =>
-                  setCatalogOpen(true)
-                }
-                onMouseLeave={() =>
-                  setCatalogOpen(false)
-                }
+                className="hidden md:block relative"
+                onMouseEnter={() => setCatalogOpen(true)}
+                onMouseLeave={() => setCatalogOpen(false)}
               >
+                <button
+                  type="button"
+                  onClick={() => setCatalogOpen((value) => !value)}
+                  className={`header-control group flex items-center gap-2 ${
+                    isScrolled ? 'header-dark' : 'header-light'
+                  }`}
+                  aria-expanded={catalogOpen}
+                >
+                  <span>Catalog</span>
 
-                <button className="nav-link flex items-center gap-1">
-                  Catalog
-                  <ChevronDown size={12} />
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-300 ${
+                      catalogOpen ? 'rotate-180' : ''
+                    }`}
+                  />
                 </button>
 
-                {catalogOpen && (
-                  <div className="absolute top-full left-0 pt-4">
+                {/* Desktop Mega Menu */}
+                <div
+                  className={`absolute left-0 top-full pt-4 transition-all duration-300 ${
+                    catalogOpen
+                      ? 'opacity-100 visible translate-y-0'
+                      : 'opacity-0 invisible -translate-y-2 pointer-events-none'
+                  }`}
+                >
+                  <div className="catalog-menu w-[min(92vw,620px)] bg-v-white text-v-black border border-v-border shadow-2xl overflow-hidden">
 
-                    <div className="bg-v-white border border-v-border shadow-lg min-w-48 py-2">
+                    <div className="grid grid-cols-2">
 
-                      {navCategories.map(
-                        cat => (
-                          <Link
-                            key={cat.slug}
-                            href={`/shop?category=${cat.slug}`}
-                            className="block px-6 py-3 text-xs tracking-wider uppercase text-v-black hover:bg-v-light transition-colors"
-                          >
-                            {cat.name}
-                          </Link>
-                        )
-                      )}
+                      <div className="p-6 md:p-8 bg-v-light">
+                        <p className="section-label mb-3">
+                          Collection
+                        </p>
+
+                        <h3 className="font-display text-2xl md:text-3xl leading-tight">
+                          Define your
+                          <br />
+                          <em>presence.</em>
+                        </h3>
+
+                        <p className="text-xs text-v-gray leading-relaxed mt-4 max-w-xs">
+                          Explore the Velsario collection designed around
+                          precision, simplicity and timeless style.
+                        </p>
+                      </div>
+
+                      <div className="p-5 md:p-7">
+                        <p className="text-[10px] tracking-[0.22em] uppercase text-v-gray mb-3">
+                          Categories
+                        </p>
+
+                        <div className="flex flex-col">
+                          {navCategories.map((cat) => (
+                            <Link
+                              key={cat.slug}
+                              href={`/shop?category=${cat.slug}`}
+                              onClick={() => setCatalogOpen(false)}
+                              className="catalog-link"
+                            >
+                              <span>{cat.name}</span>
+                              <ArrowRight size={14} />
+                            </Link>
+                          ))}
+                        </div>
+
+                        <Link
+                          href="/shop"
+                          onClick={() => setCatalogOpen(false)}
+                          className="mt-5 pt-4 border-t border-v-border flex items-center justify-between text-xs tracking-widest uppercase font-medium hover:opacity-60 transition-opacity"
+                        >
+                          View All Products
+                          <ArrowRight size={14} />
+                        </Link>
+                      </div>
 
                     </div>
-
                   </div>
-                )}
-
+                </div>
               </div>
 
-              <Link
-                href="/shop"
-                className="nav-link"
+              {/* Mobile Catalog button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(true)
+                  setCatalogOpen(true)
+                }}
+                className={`md:hidden header-control ${
+                  isScrolled ? 'header-dark' : 'header-light'
+                }`}
               >
-                Shop
-              </Link>
-
-              <Link
-                href="/about"
-                className="nav-link"
-              >
-                About
-              </Link>
+                Catalog
+              </button>
 
             </div>
 
-
-            {/* CENTER — DYNAMIC LOGO */}
-
+            {/* CENTER — LOGO */}
             <Link
               href="/"
-              className="absolute left-1/2 -translate-x-1/2"
+              onClick={closeMenus}
+              className={`absolute left-1/2 -translate-x-1/2 z-10 transition-all duration-300 ${
+                isScrolled ? 'text-v-black' : 'text-white'
+              }`}
+              aria-label="Velsario Home"
             >
-
-              {headerLogoEnabled &&
-              headerLogo ? (
-
-                <img
-                  src={headerLogo}
-                  alt="Velsario"
-                  className="max-w-[160px] md:max-w-[190px] max-h-12 md:max-h-14 object-contain"
-                />
-
-              ) : (
-
-                <span className="font-display text-2xl font-semibold tracking-widest text-v-black">
-                  VELSARIO
-                </span>
-
-              )}
-
+              <span className="font-display text-[clamp(1.25rem,3vw,1.7rem)] font-semibold tracking-[0.18em] whitespace-nowrap">
+                VELSARIO
+              </span>
             </Link>
 
+            {/* RIGHT */}
+            <div className="flex items-center gap-2 sm:gap-4">
 
-            {/* RIGHT — ICONS */}
+              {/* Search */}
+              <div ref={searchRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen((value) => !value)}
+                  className={`header-icon ${
+                    isScrolled ? 'header-dark' : 'header-light'
+                  }`}
+                  aria-label="Search"
+                  aria-expanded={searchOpen}
+                >
+                  {searchOpen ? <X size={18} /> : <Search size={18} />}
+                </button>
 
-            <div className="flex items-center gap-4 md:gap-6">
+                {/* Search Panel */}
+                <div
+                  className={`absolute right-0 top-[calc(100%+0.75rem)] w-[calc(100vw-2rem)] sm:w-[380px] md:w-[460px] transition-all duration-300 ${
+                    searchOpen
+                      ? 'opacity-100 visible translate-y-0'
+                      : 'opacity-0 invisible -translate-y-2 pointer-events-none'
+                  }`}
+                >
+                  <div className="bg-v-white text-v-black border border-v-border shadow-2xl">
 
-              <button
-                onClick={() =>
-                  setSearchOpen(!searchOpen)
-                }
-                className="text-v-black hover:text-v-gray transition-colors"
-                aria-label="Search"
-              >
-                <Search size={18} />
-              </button>
+                    <div className="flex items-center gap-3 px-4 py-4 border-b border-v-border">
+                      <Search size={17} className="text-v-gray shrink-0" />
 
+                      <input
+                        type="search"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search products..."
+                        className="flex-1 bg-transparent outline-none text-sm placeholder:text-gray-400"
+                        autoFocus={searchOpen}
+                      />
+
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery('')}
+                          className="text-v-gray hover:text-v-black"
+                        >
+                          <X size={15} />
+                        </button>
+                      )}
+                    </div>
+
+                    {searchQuery && (
+                      <div className="max-h-[360px] overflow-y-auto">
+
+                        {suggestions.length > 0 ? (
+                          <div className="p-2">
+                            {suggestions.map((product) => (
+                              <Link
+                                key={product.id}
+                                href={`/shop/${product.id}`}
+                                onClick={() => {
+                                  setSearchOpen(false)
+                                  setSearchQuery('')
+                                }}
+                                className="flex items-center gap-3 p-3 hover:bg-v-light transition-colors"
+                              >
+                                <div className="w-12 h-14 bg-v-light overflow-hidden shrink-0">
+                                  <img
+                                    src={product.images[0]}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium truncate">
+                                    {product.name}
+                                  </p>
+
+                                  <p className="text-xs text-v-gray mt-1">
+                                    ৳{product.price.toLocaleString()}
+                                  </p>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="px-5 py-8 text-center">
+                            <p className="text-sm font-medium">
+                              No products found
+                            </p>
+
+                            <p className="text-xs text-v-gray mt-2">
+                              Try another product name or category.
+                            </p>
+                          </div>
+                        )}
+
+                      </div>
+                    )}
+
+                    {!searchQuery && (
+                      <div className="p-5">
+                        <p className="text-[10px] tracking-[0.2em] uppercase text-v-gray mb-3">
+                          Popular Categories
+                        </p>
+
+                        <div className="flex flex-wrap gap-2">
+                          {navCategories.slice(0, 5).map((cat) => (
+                            <Link
+                              key={cat.slug}
+                              href={`/shop?category=${cat.slug}`}
+                              onClick={() => setSearchOpen(false)}
+                              className="px-3 py-2 border border-v-border text-xs hover:bg-v-black hover:text-white transition-colors"
+                            >
+                              {cat.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+                </div>
+              </div>
+
+              {/* Cart */}
               <Link
                 href="/cart"
-                className="relative text-v-black hover:text-v-gray transition-colors"
+                className={`header-icon relative ${
+                  isScrolled ? 'header-dark' : 'header-light'
+                }`}
                 aria-label="Shopping cart"
               >
-
                 <ShoppingBag size={18} />
 
                 {itemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-v-black text-v-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-medium">
-                    {itemCount}
+                  <span
+                    className={`absolute -top-1.5 -right-1.5 w-[17px] h-[17px] rounded-full flex items-center justify-center text-[9px] font-semibold ${
+                      isScrolled
+                        ? 'bg-v-black text-white'
+                        : 'bg-white text-black'
+                    }`}
+                  >
+                    {itemCount > 99 ? '99+' : itemCount}
                   </span>
                 )}
+              </Link>
 
+              {/* Mobile menu */}
+              <button
+                type="button"
+                onClick={() => setMobileOpen(true)}
+                className={`md:hidden header-icon ${
+                  isScrolled ? 'header-dark' : 'header-light'
+                }`}
+                aria-label="Open menu"
+              >
+                <Menu size={20} />
+              </button>
+
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        <div
+          className={`md:hidden fixed inset-0 z-[110] bg-v-white text-v-black transition-all duration-500 ${
+            mobileOpen
+              ? 'opacity-100 visible'
+              : 'opacity-0 invisible pointer-events-none'
+          }`}
+        >
+          <div className="h-full overflow-y-auto">
+
+            <div className="h-16 flex items-center justify-between px-4 border-b border-v-border">
+
+              <Link
+                href="/"
+                onClick={closeMenus}
+                className="font-display text-xl font-semibold tracking-[0.18em]"
+              >
+                VELSARIO
               </Link>
 
               <button
-                className="md:hidden text-v-black"
-                onClick={() =>
-                  setMobileOpen(!mobileOpen)
-                }
-                aria-label="Menu"
+                type="button"
+                onClick={closeMenus}
+                className="w-10 h-10 flex items-center justify-center"
+                aria-label="Close menu"
               >
-                {mobileOpen ? (
-                  <X size={20} />
-                ) : (
-                  <Menu size={20} />
-                )}
+                <X size={21} />
               </button>
 
             </div>
 
-          </div>
+            <div className="px-5 py-7">
 
-        </div>
-
-
-        {/* SEARCH BAR */}
-
-        {searchOpen && (
-          <div className="border-t border-v-border bg-v-white px-4 md:px-8 py-4">
-
-            <div className="max-w-2xl mx-auto flex items-center gap-4">
-
-              <Search
-                size={16}
-                className="text-v-gray"
-              />
-
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={e =>
-                  setSearchQuery(
-                    e.target.value
-                  )
-                }
-                className="flex-1 bg-transparent border-none outline-none text-sm tracking-wide"
-                autoFocus
-              />
-
-              <button
-                onClick={() =>
-                  setSearchOpen(false)
-                }
-                aria-label="Close search"
-              >
-                <X
-                  size={16}
-                  className="text-v-gray"
-                />
-              </button>
-
-            </div>
-
-          </div>
-        )}
-
-      </nav>
-
-
-      {/* MOBILE MENU */}
-
-      {mobileOpen && (
-        <div
-          className={`fixed inset-0 z-40 bg-v-white ${
-            announcementEnabled &&
-            announcementText
-              ? 'pt-28'
-              : 'pt-20'
-          }`}
-        >
-
-          <div className="px-8 py-8 flex flex-col gap-6">
-
-            <div>
-
-              <p className="section-label mb-4">
+              <p className="section-label mb-5">
                 Catalog
               </p>
 
-              {navCategories.map(
-                cat => (
+              <div className="border-t border-v-border">
+
+                {navCategories.map((cat, index) => (
                   <Link
                     key={cat.slug}
                     href={`/shop?category=${cat.slug}`}
-                    className="block py-3 text-sm tracking-wider uppercase border-b border-v-border text-v-black"
-                    onClick={() =>
-                      setMobileOpen(false)
-                    }
+                    onClick={closeMenus}
+                    className="mobile-menu-link"
+                    style={{
+                      transitionDelay: mobileOpen
+                        ? `${index * 35}ms`
+                        : '0ms',
+                    }}
                   >
-                    {cat.name}
+                    <span>{cat.name}</span>
+                    <ArrowRight size={15} />
                   </Link>
-                )
-              )}
+                ))}
+
+              </div>
+
+              <div className="mt-8 pt-7 border-t border-v-border flex flex-col">
+
+                <Link
+                  href="/shop"
+                  onClick={closeMenus}
+                  className="mobile-main-link"
+                >
+                  Shop All
+                </Link>
+
+                <Link
+                  href="/about"
+                  onClick={closeMenus}
+                  className="mobile-main-link"
+                >
+                  About
+                </Link>
+
+                <Link
+                  href="/contact"
+                  onClick={closeMenus}
+                  className="mobile-main-link"
+                >
+                  Contact
+                </Link>
+
+              </div>
+
+              <div className="mt-10 p-5 bg-v-light">
+                <p className="section-label mb-2">
+                  Velsario
+                </p>
+
+                <p className="font-display text-2xl leading-tight">
+                  Minimal colors.
+                  <br />
+                  <em>Maximum impact.</em>
+                </p>
+              </div>
 
             </div>
-
-            <div className="flex flex-col gap-4 pt-4">
-
-              <Link
-                href="/shop"
-                className="nav-link"
-                onClick={() =>
-                  setMobileOpen(false)
-                }
-              >
-                Shop All
-              </Link>
-
-              <Link
-                href="/about"
-                className="nav-link"
-                onClick={() =>
-                  setMobileOpen(false)
-                }
-              >
-                About
-              </Link>
-
-              <Link
-                href="/contact"
-                className="nav-link"
-                onClick={() =>
-                  setMobileOpen(false)
-                }
-              >
-                Contact
-              </Link>
-
-            </div>
-
           </div>
-
         </div>
-      )}
-
+      </nav>
     </>
   )
 }
