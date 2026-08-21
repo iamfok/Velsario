@@ -558,19 +558,17 @@ export default function CategoriesPage() {
                       <button
                         onClick={() => {
 
- const updated =
-  categories.map(
-    item =>
-      item.id === category.id
-        ? {
-            ...item,
-            status:
-              item.status ===
-              'Active'
-                ? 'Inactive'
-                : 'Active',
-          }
-        : item
+const updated: Category[] =
+  categories.map(item =>
+    item.id === category.id
+      ? {
+          ...item,
+          status:
+            item.status === 'Active'
+              ? 'Inactive'
+              : 'Active',
+        }
+      : item
   )
 
 saveCategories(updated)
