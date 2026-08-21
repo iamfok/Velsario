@@ -13,6 +13,7 @@ import {
   X,
   Plus,
   Trash2,
+  MessageCircle,
 } from 'lucide-react'
 
 type SocialLink = {
