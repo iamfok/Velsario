@@ -23,6 +23,37 @@ type Product = (typeof products)[number] & {
   salePrice?: number | null
 }
 
+function normalizeProduct(product: any): Product {
+  const rawImages = Array.isArray(product?.images) ? product.images : []
+  const rawColors = Array.isArray(product?.colors) ? product.colors : []
+  const rawSizes = Array.isArray(product?.sizes) ? product.sizes : []
+
+  return {
+    ...product,
+    id: String(product?.id ?? ''),
+    name: String(product?.name ?? 'Untitled Product'),
+    category: String(product?.category ?? ''),
+    subcategory: product?.subcategory ? String(product.subcategory) : undefined,
+    images: rawImages.filter((v: unknown) => typeof v === 'string' && v.trim()),
+    colors: rawColors.filter((v: unknown) => typeof v === 'string' && v.trim()),
+    sizes: rawSizes.filter((v: unknown) => typeof v === 'string' && v.trim()),
+    price: Number.isFinite(Number(product?.price)) ? Number(product.price) : 0,
+    salePrice:
+      product?.salePrice !== null &&
+      product?.salePrice !== undefined &&
+      Number.isFinite(Number(product.salePrice))
+        ? Number(product.salePrice)
+        : null,
+    featured: product?.featured === true,
+    createdAt: product?.createdAt ? String(product.createdAt) : undefined,
+    badge: product?.badge ? String(product.badge) : undefined,
+  } as Product
+}
+
+const safeProducts = (Array.isArray(products) ? products : [])
+  .map(normalizeProduct)
+  .filter(product => product.id)
+
 const menCategories = [
   { name: "Men's Shirt", image: 'https://velsario.com/wp-content/uploads/2026/03/menu-m-shirt-700x1024.jpg', slug: 'velsario-shirt', filter: 'men-shirt' },
   { name: "Men's Pants", image: 'https://velsario.com/wp-content/uploads/2026/03/menu-m-pants-700x1024.jpg', slug: 'velsario-pants', filter: '' },
@@ -68,6 +99,8 @@ function ProductCard({
   const [liked, setLiked] = useState(false)
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || '')
   const [added, setAdded] = useState(false)
+  const productImage = product.images?.[0] || '/placeholder-product.jpg'
+  const productColors = Array.isArray(product.colors) ? product.colors : []
 
   useEffect(() => {
     try {
@@ -101,7 +134,7 @@ function ProductCard({
       <div className="relative aspect-[3/4] overflow-hidden bg-v-light">
         <Link href={`/shop/${product.id}`} className="block h-full">
           <img
-            src={product.images[0]}
+            src={productImage}
             alt={product.name}
             className="product-image h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           />
@@ -146,9 +179,9 @@ function ProductCard({
           </div>
         </div>
 
-        {product.colors?.length > 0 && (
+        {productColors.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
-            {product.colors.map(color => (
+            {productColors.map(color => (
               <button
                 key={color}
                 type="button"
@@ -197,7 +230,7 @@ function ProductCard({
 
 export default function HomePage() {
   const { addItem } = useCart()
-  const [allProducts, setAllProducts] = useState<Product[]>(products)
+  const [allProducts, setAllProducts] = useState<Product[]>(safeProducts)
   const [newArrivalLimit, setNewArrivalLimit] = useState(5)
   const [exploreIndex, setExploreIndex] = useState(0)
 
@@ -207,14 +240,19 @@ export default function HomePage() {
   useEffect(() => {
     const loadProducts = () => {
       try {
-        const saved: Product[] = JSON.parse(localStorage.getItem('velsario-products') || '[]')
+        const saved: unknown = JSON.parse(localStorage.getItem('velsario-products') || '[]')
+        const normalizedSaved = Array.isArray(saved)
+          ? saved.map(normalizeProduct).filter(product => product.id)
+          : []
+
         const merged = [
-          ...saved,
-          ...products.filter(product => !saved.some(savedProduct => savedProduct.id === product.id)),
+          ...normalizedSaved,
+          ...safeProducts.filter(product => !normalizedSaved.some(savedProduct => savedProduct.id === product.id)),
         ]
+
         setAllProducts(merged)
       } catch {
-        setAllProducts(products)
+        setAllProducts(safeProducts)
       }
     }
 
@@ -250,7 +288,7 @@ export default function HomePage() {
       price: product.salePrice || product.price,
       color,
       size: product.sizes?.[0] || '',
-      image: product.images[0],
+      image: productImage,
       quantity: 1,
     })
   }
@@ -507,7 +545,7 @@ export default function HomePage() {
             {allProducts.slice(0, 2).map(product => (
               <Link key={product.id} href={`/shop/${product.id}`} className="product-card group">
                 <div className="aspect-[3/4] overflow-hidden bg-v-white">
-                  <img src={product.images[0]} alt={product.name} className="product-image h-full w-full object-cover" />
+                  <img src={product.images?.[0] || '/placeholder-product.jpg'} alt={product.name} className="product-image h-full w-full object-cover" />
                 </div>
                 <p className="mt-2 truncate text-xs font-medium">{product.name}</p>
                 <p className="text-xs text-v-gray">৳{product.price.toLocaleString()}</p>
