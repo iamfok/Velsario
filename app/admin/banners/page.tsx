@@ -66,7 +66,7 @@ async function readVideo(file: File) {
     reader.readAsDataURL(file)
   })
 }
-
+ 
 export default function BannersPage() {
   const [banners, setBanners] = useState<Banner[]>(() => getBanners())
   const [media, setMedia] = useState<MediaItem[]>(() => getMedia())
