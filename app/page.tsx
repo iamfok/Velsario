@@ -68,27 +68,6 @@ const womenCategories = [
   { name: 'Evening Wear', image: 'https://velsario.com/wp-content/uploads/2026/03/menu-w-even-700x1024.jpg', slug: 'evening-dresses', filter: '' },
 ]
 
-const exploreSlides = [
-  {
-    image: 'https://velsario.com/wp-content/uploads/2026/03/WhatsApp-Image-2026-03-20-at-9.30.33-PM.jpeg',
-    eyebrow: 'Our Collection',
-    title: 'Explore our exquisite',
-    accent: 'Collection now!',
-    description: 'Discover refined silhouettes designed around precision, simplicity and timeless style.',
-    button: 'View Collection',
-    href: '/shop',
-  },
-  {
-    image: 'https://velsario.com/wp-content/uploads/2026/03/WhatsApp-Image-2026-03-20-at-9.30.33-PM-2.jpeg',
-    eyebrow: 'Velsario Edit',
-    title: 'Minimal form.',
-    accent: 'Maximum presence.',
-    description: 'A sharper wardrobe designed for confidence, comfort and timeless style.',
-    button: 'Shop Now',
-    href: '/shop',
-  },
-]
-
 function ProductCard({
   product,
   onAdd,
@@ -234,8 +213,9 @@ export default function HomePage() {
   const [newArrivalLimit, setNewArrivalLimit] = useState(5)
   const [exploreIndex, setExploreIndex] = useState(0)
 
-  const heroBanners = getActiveBanners('Homepage Hero')
-  const bottomBanners = getActiveBanners('Homepage Bottom')
+const heroBanners = getActiveBanners('Homepage Hero')
+const secondaryBanners = getActiveBanners('Homepage Secondary')
+const bottomBanners = getActiveBanners('Homepage Bottom')
 
   useEffect(() => {
     const loadProducts = () => {
@@ -305,7 +285,43 @@ export default function HomePage() {
   }
 
   const hero = heroBanners[0] || fallbackHero
-  const currentSlide = exploreSlides[exploreIndex]
+const exploreSlides =
+  secondaryBanners.length > 0
+    ? secondaryBanners.map((banner) => ({
+        image: banner.desktopImage,
+        mobileImage: banner.mobileImage || '',
+        type: banner.type,
+        videoUrl: banner.videoUrl || '',
+        eyebrow: banner.title || 'Our Collection',
+        title: banner.heading || 'Explore our exquisite',
+        accent: banner.subheading || 'Collection now!',
+        description:
+          banner.description ||
+          'Discover refined silhouettes designed around precision, simplicity and timeless style.',
+        button: banner.buttonText || 'View Collection',
+        href: banner.buttonUrl || '/shop',
+      }))
+    : [
+        {
+          image:
+            'https://velsario.com/wp-content/uploads/2026/03/WhatsApp-Image-2026-03-20-at-9.30.33-PM.jpeg',
+          mobileImage: '',
+          type: 'image',
+          videoUrl: '',
+          eyebrow: 'Our Collection',
+          title: 'Explore our exquisite',
+          accent: 'Collection now!',
+          description:
+            'Discover refined silhouettes designed around precision, simplicity and timeless style.',
+          button: 'View Collection',
+          href: '/shop',
+        },
+      ]
+
+const safeExploreIndex =
+  exploreIndex >= exploreSlides.length ? 0 : exploreIndex
+
+const currentSlide = exploreSlides[safeExploreIndex]
 
   return (
     <div className="overflow-hidden">
@@ -429,12 +445,43 @@ export default function HomePage() {
       <section className="px-4 py-8 md:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="relative min-h-[520px] overflow-hidden bg-v-black text-v-white md:min-h-[620px]">
-            {exploreSlides.map((item, index) => (
-              <div key={item.title} className={`absolute inset-0 transition-opacity duration-700 ${index === exploreIndex ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
-                <img src={item.image} alt={item.title} className="h-full w-full object-cover opacity-40" />
-                <div className="absolute inset-0 bg-black/45" />
-              </div>
-            ))}
+         {exploreSlides.map((item, index) => (
+  <div
+    key={`${item.title}-${index}`}
+    className={`absolute inset-0 transition-opacity duration-700 ${
+      index === safeExploreIndex
+        ? 'opacity-100'
+        : 'pointer-events-none opacity-0'
+    }`}
+  >
+    {item.type === 'video' && item.videoUrl ? (
+      <video
+        src={item.videoUrl}
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="h-full w-full object-cover opacity-40"
+      />
+    ) : (
+      <picture className="block h-full w-full">
+        {item.mobileImage && (
+          <source
+            media="(max-width: 767px)"
+            srcSet={item.mobileImage}
+          />
+        )}
+        <img
+          src={item.image}
+          alt={item.title}
+          className="h-full w-full object-cover opacity-40"
+        />
+      </picture>
+    )}
+
+    <div className="absolute inset-0 bg-black/45" />
+  </div>
+))}
 
             <div className="relative z-10 flex min-h-[520px] items-center justify-center px-6 py-20 text-center md:min-h-[620px] md:px-16">
               <div className="max-w-3xl">
@@ -457,7 +504,7 @@ export default function HomePage() {
               </button>
 
               {exploreSlides.map((_, index) => (
-                <button key={index} type="button" onClick={() => setExploreIndex(index)} className={`h-1 rounded-full transition-all ${index === exploreIndex ? 'w-8 bg-white' : 'w-2 bg-white/40'}`} aria-label={`Slide ${index + 1}`} />
+                <button key={index} type="button" onClick={() => setExploreIndex(index)} className={`h-1 rounded-full transition-all ${index === safeExploreIndex ? 'w-8 bg-white' : 'w-2 bg-white/40'}`} aria-label={`Slide ${index + 1}`} />
               ))}
 
               <button type="button" onClick={() => setExploreIndex(i => (i + 1) % exploreSlides.length)} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/40 bg-black/20 transition hover:bg-white hover:text-black" aria-label="Next slide">
