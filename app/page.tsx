@@ -288,7 +288,7 @@ export default function HomePage() {
       price: product.salePrice || product.price,
       color,
       size: product.sizes?.[0] || '',
-      image: productImage,
+      image: product.images?.[0] || '/placeholder-product.jpg',
       quantity: 1,
     })
   }
