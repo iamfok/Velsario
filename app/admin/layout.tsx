@@ -18,24 +18,35 @@ import {
   Settings,
   Menu,
   X,
-  FileText
+  FileText,
+  Home,
 } from 'lucide-react'
 
 const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+
   { label: 'Products', href: '/admin/products', icon: Package },
   { label: 'Categories', href: '/admin/categories', icon: Tags },
   { label: 'Brands', href: '/admin/brands', icon: Tags },
+
   { label: 'Orders', href: '/admin/orders', icon: ShoppingCart },
   { label: 'Customers', href: '/admin/customers', icon: Users },
   { label: 'Users & Access', href: '/admin/users', icon: ShieldCheck },
   { label: 'Coupons', href: '/admin/coupons', icon: Ticket },
   { label: 'Reviews', href: '/admin/reviews', icon: Star },
   { label: 'Inventory', href: '/admin/inventory', icon: Warehouse },
+
+  {
+    label: 'Homepage',
+    href: '/admin/homepage-categories',
+    icon: Home,
+  },
+
   { label: 'Banners', href: '/admin/banners', icon: Image },
-  { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { label: 'Media Library', href: '/admin/media', icon: Image },
   { label: 'Pages', href: '/admin/pages', icon: FileText },
+
+  { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { label: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
@@ -50,14 +61,12 @@ export default function AdminLayout({
   return (
     <div className="flex h-screen bg-gray-50 font-body">
 
-      {/* SIDEBAR */}
       <aside
         className={`${
           sidebarOpen ? 'w-60' : 'w-16'
         } bg-v-black text-white flex flex-col transition-all duration-300 flex-shrink-0`}
       >
 
-        {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-800">
           {sidebarOpen && (
             <span className="font-display text-lg tracking-widest">
@@ -66,6 +75,7 @@ export default function AdminLayout({
           )}
 
           <button
+            type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="text-gray-400 hover:text-white ml-auto"
           >
@@ -73,11 +83,11 @@ export default function AdminLayout({
           </button>
         </div>
 
-        {/* MENU */}
         <nav className="flex-1 py-3 overflow-y-auto">
 
           {navItems.map((item) => {
             const Icon = item.icon
+
             const isActive =
               pathname === item.href ||
               (item.href !== '/admin' &&
@@ -106,7 +116,6 @@ export default function AdminLayout({
 
         </nav>
 
-        {/* VIEW STORE */}
         <div className="border-t border-gray-800 p-4">
           <Link
             href="/"
@@ -124,10 +133,8 @@ export default function AdminLayout({
 
       </aside>
 
-      {/* MAIN ADMIN AREA */}
       <div className="flex-1 flex flex-col overflow-hidden">
 
-        {/* ADMIN HEADER */}
         <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between">
 
           <div className="text-xs text-gray-500">
@@ -148,7 +155,6 @@ export default function AdminLayout({
 
         </header>
 
-        {/* CONTENT */}
         <main className="flex-1 overflow-auto p-6">
           {children}
         </main>
