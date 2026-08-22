@@ -15,6 +15,10 @@ import {
 } from 'lucide-react'
 import { products } from '@/lib/products'
 import { getActiveBanners } from '@/lib/banners'
+import {
+  getHomeCategoryCards,
+  type HomeCategoryCard,
+} from '@/lib/homepage-categories'
 import { useCart } from '@/lib/cart-context'
 
 type Product = (typeof products)[number] & {
@@ -53,20 +57,6 @@ function normalizeProduct(product: any): Product {
 const safeProducts = (Array.isArray(products) ? products : [])
   .map(normalizeProduct)
   .filter(product => product.id)
-
-const menCategories = [
-  { name: "Men's Shirt", image: 'https://velsario.com/wp-content/uploads/2026/03/menu-m-shirt-700x1024.jpg', slug: 'velsario-shirt', filter: 'men-shirt' },
-  { name: "Men's Pants", image: 'https://velsario.com/wp-content/uploads/2026/03/menu-m-pants-700x1024.jpg', slug: 'velsario-pants', filter: '' },
-  { name: 'Accessories', image: 'https://velsario.com/wp-content/uploads/2026/03/menu-m-Acc-700x1024.jpg', slug: 'accessories', filter: '' },
-  { name: 'Evening Dresses', image: 'https://velsario.com/wp-content/uploads/2026/03/menu-w-Eve-700x1024.jpg', slug: 'evening-dresses', filter: '' },
-]
-
-const womenCategories = [
-  { name: "Women's Shirt", image: 'https://velsario.com/wp-content/uploads/2026/03/menu-w-shirt-700x1024.jpg', slug: 'velsario-shirt', filter: 'ladies-shirt' },
-  { name: "Women's Pants", image: 'https://velsario.com/wp-content/uploads/2026/03/Untitled-1-700x1024.jpg', slug: 'velsario-pants', filter: '' },
-  { name: 'Accessories', image: 'https://velsario.com/wp-content/uploads/2026/03/menu-w-Acc-700x1024.jpg', slug: 'accessories', filter: '' },
-  { name: 'Evening Wear', image: 'https://velsario.com/wp-content/uploads/2026/03/menu-w-even-700x1024.jpg', slug: 'evening-dresses', filter: '' },
-]
 
 function ProductCard({
   product,
@@ -212,6 +202,8 @@ export default function HomePage() {
   const [allProducts, setAllProducts] = useState<Product[]>(safeProducts)
   const [newArrivalLimit, setNewArrivalLimit] = useState(5)
   const [exploreIndex, setExploreIndex] = useState(0)
+  const [homeCategoryCards, setHomeCategoryCards] =
+  useState<HomeCategoryCard[]>(() => getHomeCategoryCards())
 
 const heroBanners = getActiveBanners('Homepage Hero')
 const secondaryBanners = getActiveBanners('Homepage Secondary')
@@ -246,6 +238,43 @@ const bottomBanners = getActiveBanners('Homepage Bottom')
     }
   }, [])
 
+useEffect(() => {
+  const loadHomeCategoryCards = () => {
+    setHomeCategoryCards(getHomeCategoryCards())
+  }
+
+  loadHomeCategoryCards()
+
+  window.addEventListener(
+    'storage',
+    loadHomeCategoryCards
+  )
+
+  window.addEventListener(
+    'velsario-home-categories-updated',
+    loadHomeCategoryCards
+  )
+
+  return () => {
+    window.removeEventListener(
+      'storage',
+      loadHomeCategoryCards
+    )
+
+    window.removeEventListener(
+      'velsario-home-categories-updated',
+      loadHomeCategoryCards
+    )
+  }
+}, [])
+
+  const menCategories = homeCategoryCards.filter(
+  card => card.id.startsWith('men-')
+)
+
+const womenCategories = homeCategoryCards.filter(
+  card => card.id.startsWith('women-')
+)
   const mostPopular = useMemo(
     () => allProducts.filter(product => product.featured === true).slice(0, 5),
     [allProducts]
