@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import {
   Search,
   ShoppingBag,
@@ -38,6 +39,7 @@ export default function Navbar() {
   const [catalogOpen, setCatalogOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const pathname = usePathname()
 
   const [settings, setSettings] =
     useState<SiteSettings>({})
@@ -108,6 +110,23 @@ export default function Navbar() {
       )
     }
   }, [])
+
+  /* --------------------------------
+     RESET NAV UI AFTER ROUTE CHANGE
+
+     Keep the Navbar mounted across Next.js
+     client-side navigation, but always close
+     transient UI after the new route arrives.
+     This prevents stale animated overlays from
+     being reconciled during navigation.
+  -------------------------------- */
+
+  useEffect(() => {
+    setCatalogOpen(false)
+    setSearchOpen(false)
+    setSearchQuery('')
+    setMobileOpen(false)
+  }, [pathname])
 
   /* --------------------------------
      CLOSE SEARCH OUTSIDE
@@ -1071,6 +1090,7 @@ export default function Navbar() {
 
               <Link
                 href="/cart"
+                onClick={closeMenus}
                 className={`
                   header-icon
                   relative
