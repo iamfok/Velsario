@@ -2,6 +2,11 @@
 
 import { useMemo, useState } from 'react'
 import {
+  getAllAdminPages,
+  type AdminPageItem,
+} from '@/lib/admin-pages'
+
+import {
   Plus,
   Edit,
   Trash2,
@@ -70,6 +75,7 @@ async function readVideo(file: File) {
 export default function BannersPage() {
   const [banners, setBanners] = useState<Banner[]>(() => getBanners())
   const [media, setMedia] = useState<MediaItem[]>(() => getMedia())
+  const [adminPages, setAdminPages] = useState<AdminPageItem[]>([])
   const [editing, setEditing] = useState<Banner | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -83,6 +89,9 @@ export default function BannersPage() {
   )
 
   const refreshMedia = () => setMedia(getMedia())
+  const refreshPages = () => {
+  setAdminPages(getAllAdminPages())
+}
 
   const emptyBanner = (): Banner => ({
     id: `BAN-${Date.now()}`,
@@ -106,6 +115,7 @@ export default function BannersPage() {
     setShowForm(true)
     setMediaTarget(null)
     refreshMedia()
+    refreshPages()
   }
 
   const openEdit = (banner: Banner) => {
@@ -113,6 +123,7 @@ export default function BannersPage() {
     setShowForm(true)
     setMediaTarget(null)
     refreshMedia()
+    refreshPages()
   }
 
   const closeForm = () => {
@@ -375,28 +386,76 @@ export default function BannersPage() {
             </select>
           </div>
 
-          {editing.position === 'Page Hero' && (
-            <div className="mt-5 border border-v-border bg-v-light p-4">
-              <label className="mb-2 block text-[10px] uppercase tracking-widest text-v-gray">
-                Page Path
-              </label>
+{editing.position === 'Page Hero' && (
+  <div className="mt-5 border border-v-border bg-v-light p-4">
 
-              <input
-                value={editing.pagePath || ''}
-                onChange={(e) =>
-                  update('pagePath', e.target.value)
-                }
-                placeholder="/about"
-                className="input-field bg-white"
-              />
+    <label className="mb-2 block text-[10px] uppercase tracking-widest text-v-gray">
+      Select Page
+    </label>
 
-              <p className="mt-2 text-[10px] leading-relaxed text-v-gray">
-                Leave empty to use this as the fallback banner for all public
-                pages that do not have their own Page Hero. Use the exact path,
-                for example /about, /contact, /shop or /shop?category=velsario-shirt.
-              </p>
-            </div>
-          )}
+    <select
+      value={editing.pagePath || ''}
+      onChange={(e) =>
+        update('pagePath', e.target.value)
+      }
+      className="input-field bg-white"
+    >
+      <option value="">
+        All Public Pages — Global Fallback
+      </option>
+
+      <optgroup label="System Pages">
+        {adminPages
+          .filter((page) => page.type === 'system')
+          .map((page) => (
+            <option
+              key={page.id}
+              value={page.path}
+            >
+              {page.name} — {page.path}
+            </option>
+          ))}
+      </optgroup>
+
+      <optgroup label="Categories">
+        {adminPages
+          .filter((page) => page.type === 'category')
+          .map((page) => (
+            <option
+              key={page.id}
+              value={page.path}
+            >
+              {page.name} — {page.path}
+            </option>
+          ))}
+      </optgroup>
+
+      {adminPages.some(
+        (page) => page.type === 'custom'
+      ) && (
+        <optgroup label="Custom Pages">
+          {adminPages
+            .filter((page) => page.type === 'custom')
+            .map((page) => (
+              <option
+                key={page.id}
+                value={page.path}
+              >
+                {page.name} — {page.path}
+              </option>
+            ))}
+        </optgroup>
+      )}
+    </select>
+
+    <p className="mt-2 text-[10px] leading-relaxed text-v-gray">
+      Select which public page this hero belongs to.
+      Leave it on Global Fallback to use this banner on
+      public pages without a specific hero.
+    </p>
+
+  </div>
+)}
 
           {editing.type === 'image' ? (
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
