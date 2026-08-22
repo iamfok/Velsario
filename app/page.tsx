@@ -205,9 +205,34 @@ export default function HomePage() {
   const [homeCategoryCards, setHomeCategoryCards] =
   useState<HomeCategoryCard[]>(() => getHomeCategoryCards())
 
-const heroBanners = getActiveBanners('Homepage Hero')
-const secondaryBanners = getActiveBanners('Homepage Secondary')
-const bottomBanners = getActiveBanners('Homepage Bottom')
+  const [homeBanners, setHomeBanners] = useState(() => ({
+    hero: getActiveBanners('Homepage Hero'),
+    secondary: getActiveBanners('Homepage Secondary'),
+    bottom: getActiveBanners('Homepage Bottom'),
+  }))
+
+  const heroBanners = homeBanners.hero
+  const secondaryBanners = homeBanners.secondary
+  const bottomBanners = homeBanners.bottom
+
+  useEffect(() => {
+    const loadBanners = () => {
+      setHomeBanners({
+        hero: getActiveBanners('Homepage Hero'),
+        secondary: getActiveBanners('Homepage Secondary'),
+        bottom: getActiveBanners('Homepage Bottom'),
+      })
+    }
+
+    loadBanners()
+    window.addEventListener('storage', loadBanners)
+    window.addEventListener('velsario-banners-updated', loadBanners)
+
+    return () => {
+      window.removeEventListener('storage', loadBanners)
+      window.removeEventListener('velsario-banners-updated', loadBanners)
+    }
+  }, [])
 
   useEffect(() => {
     const loadProducts = () => {
@@ -651,8 +676,7 @@ const currentSlide = exploreSlides[safeExploreIndex]
               <em>{bottomBanners[0]?.subheading || 'fashion reinvented!'}</em>
             </h2>
             <p className="mb-8 mt-6 font-light text-gray-300">
-               Dive into a world of style with our latest collection!
-              
+              {bottomBanners[0]?.description || 'Dive into a world of style with our latest collection!'}
             </p>
             <Link href={bottomBanners[0]?.buttonUrl || '/shop'} className="btn-white">
               {bottomBanners[0]?.buttonText || 'Shop Now'}
