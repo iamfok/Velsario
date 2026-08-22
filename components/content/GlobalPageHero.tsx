@@ -2,17 +2,20 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
   getPageHeroBanner,
   type Banner,
 } from '@/lib/banners'
 
-function getTargetPath(
-  pathname: string,
-  searchParams: URLSearchParams
-) {
-  const category = searchParams.get('category')
+function getTargetPath(pathname: string) {
+  if (typeof window === 'undefined') {
+    return pathname
+  }
+
+  const category = new URLSearchParams(
+    window.location.search
+  ).get('category')
 
   if (category) {
     return `${pathname}?category=${category}`
@@ -23,25 +26,15 @@ function getTargetPath(
 
 export default function GlobalPageHero() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
-
-  const [banner, setBanner] = useState<Banner | null>(() =>
-    getPageHeroBanner(
-      getTargetPath(
-        pathname || '/',
-        searchParams
-      )
-    )
-  )
+  const [banner, setBanner] = useState<Banner | null>(null)
 
   useEffect(() => {
     const load = () => {
-      const targetPath = getTargetPath(
-        pathname || '/',
-        searchParams
-      )
+      const targetPath = getTargetPath(pathname || '/')
 
-      setBanner(getPageHeroBanner(targetPath))
+      setBanner(
+        getPageHeroBanner(targetPath)
+      )
     }
 
     load()
@@ -67,7 +60,7 @@ export default function GlobalPageHero() {
         load
       )
     }
-  }, [pathname, searchParams])
+  }, [pathname])
 
   // Homepage already has its own Hero.
   if (pathname === '/') {
@@ -83,7 +76,10 @@ export default function GlobalPageHero() {
       <div className="relative min-h-[300px] md:min-h-[430px]">
 
         <div className="absolute inset-0">
-          {banner.type === 'video' && banner.videoUrl ? (
+
+          {banner.type === 'video' &&
+          banner.videoUrl ? (
+
             <video
               src={banner.videoUrl}
               autoPlay
@@ -92,8 +88,11 @@ export default function GlobalPageHero() {
               playsInline
               className="h-full w-full object-cover"
             />
+
           ) : banner.desktopImage ? (
+
             <picture className="block h-full w-full">
+
               {banner.mobileImage && (
                 <source
                   media="(max-width: 767px)"
@@ -106,13 +105,17 @@ export default function GlobalPageHero() {
                 alt={banner.title}
                 className="h-full w-full object-cover"
               />
+
             </picture>
+
           ) : null}
 
           <div className="absolute inset-0 bg-black/50" />
+
         </div>
 
         <div className="relative z-10 flex min-h-[300px] items-center justify-center px-5 py-20 text-center md:min-h-[430px] md:px-8">
+
           <div className="max-w-4xl">
 
             {banner.title && (
@@ -151,7 +154,9 @@ export default function GlobalPageHero() {
             )}
 
           </div>
+
         </div>
+
       </div>
     </section>
   )
