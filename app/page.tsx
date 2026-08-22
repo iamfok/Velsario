@@ -628,18 +628,18 @@ const currentSlide = exploreSlides[safeExploreIndex]
       <section className="relative overflow-hidden">
         {bottomBanners.length > 0 ? (
           bottomBanners[0].type === 'video' && bottomBanners[0].videoUrl ? (
-            <video src={bottomBanners[0].videoUrl} autoPlay muted loop playsInline className="h-96 w-full object-cover md:h-[620px]" />
+            <video src={bottomBanners[0].videoUrl} autoPlay muted loop playsInline className="h-72 w-full object-cover md:h-[420px]" />
           ) : (
             <picture>
               {bottomBanners[0].mobileImage && <source media="(max-width: 767px)" srcSet={bottomBanners[0].mobileImage} />}
-              <img src={bottomBanners[0].desktopImage} alt={bottomBanners[0].title} className="h-96 w-full object-cover md:h-[620px]" />
+              <img src={bottomBanners[0].desktopImage} alt={bottomBanners[0].title} className="h-72 w-full object-cover md:h-[420px]" />
             </picture>
           )
         ) : (
           <img
             src="https://velsario.com/wp-content/uploads/2026/03/WhatsApp-Image-2026-03-20-at-9.30.33-PM-2.jpeg"
             alt="Velsario Fashion"
-            className="h-96 w-full object-cover md:h-[620px]"
+            className="h-72 w-full object-cover md:h-[420px]"
           />
         )}
 
