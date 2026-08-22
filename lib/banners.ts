@@ -1,6 +1,12 @@
 export type BannerType = 'image' | 'video'
 export type BannerStatus = 'Active' | 'Inactive'
 
+export type BannerPosition =
+  | 'Homepage Hero'
+  | 'Homepage Secondary'
+  | 'Homepage Bottom'
+  | 'Page Hero'
+
 export type Banner = {
   id: string
   title: string
@@ -10,6 +16,10 @@ export type Banner = {
   videoUrl?: string
   position: string
   status: BannerStatus
+
+  // Page targeting for Global Page Hero.
+  // '' means this banner can be used as the global fallback.
+  pagePath?: string
 
   heading?: string
   subheading?: string
@@ -29,7 +39,17 @@ export function getBanners(): Banner[] {
     if (!raw) return []
 
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
+    if (!Array.isArray(parsed)) return []
+
+    return parsed.map((item: any) => ({
+      ...item,
+      position: item.position || 'Homepage Hero',
+      status:
+        item.status === 'Inactive'
+          ? 'Inactive'
+          : 'Active',
+      pagePath: item.pagePath || '',
+    })) as Banner[]
   } catch {
     return []
   }
@@ -40,6 +60,42 @@ export function getActiveBanners(position?: string): Banner[] {
     const active = banner.status === 'Active'
     return active && (!position || banner.position === position)
   })
+}
+
+export function getPageHeroBanners(): Banner[] {
+  return getActiveBanners('Page Hero')
+}
+
+function normalizePath(path: string) {
+  const value = (path || '/').trim()
+
+  if (!value) return '/'
+  if (value === '/') return '/'
+
+  return value.endsWith('/')
+    ? value.slice(0, -1)
+    : value
+}
+
+export function getPageHeroBanner(pathname: string): Banner | null {
+  const banners = getPageHeroBanners()
+
+  const currentPath = normalizePath(pathname)
+
+  // 1. Exact page match wins.
+  const exact = banners.find(
+    (banner) =>
+      normalizePath(banner.pagePath || '') === currentPath
+  )
+
+  if (exact) return exact
+
+  // 2. A banner with no pagePath is the global fallback.
+  const fallback = banners.find(
+    (banner) => !(banner.pagePath || '').trim()
+  )
+
+  return fallback || null
 }
 
 export function saveBanners(banners: Banner[]) {
@@ -57,7 +113,9 @@ export function saveBanners(banners: Banner[]) {
 
 export function upsertBanner(banner: Banner) {
   const banners = getBanners()
-  const index = banners.findIndex((item) => item.id === banner.id)
+  const index = banners.findIndex(
+    (item) => item.id === banner.id
+  )
 
   if (index === -1) {
     saveBanners([...banners, banner])
@@ -70,7 +128,9 @@ export function upsertBanner(banner: Banner) {
 }
 
 export function deleteBanner(id: string) {
-  saveBanners(getBanners().filter((banner) => banner.id !== id))
+  saveBanners(
+    getBanners().filter((banner) => banner.id !== id)
+  )
 }
 
 export function toggleBannerStatus(id: string) {
