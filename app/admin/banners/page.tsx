@@ -145,15 +145,17 @@ export default function BannersPage() {
   }
 
   const toggleStatus = (id: string) => {
-    const updated = banners.map((banner) =>
-      banner.id === id
-        ? {
-            ...banner,
-            status:
-              banner.status === 'Active' ? 'Inactive' : 'Active',
-          }
-        : banner
-    )
+const updated: Banner[] = banners.map((banner): Banner =>
+  banner.id === id
+    ? {
+        ...banner,
+        status:
+          banner.status === 'Active'
+            ? 'Inactive'
+            : 'Active',
+      }
+    : banner
+)
 
     setBanners(updated)
     saveBanners(updated)
