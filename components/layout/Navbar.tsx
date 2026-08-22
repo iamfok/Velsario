@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import {
   Search,
   ShoppingBag,
@@ -39,7 +37,6 @@ export default function Navbar() {
   const [catalogOpen, setCatalogOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const pathname = usePathname()
 
   const [settings, setSettings] =
     useState<SiteSettings>({})
@@ -110,23 +107,6 @@ export default function Navbar() {
       )
     }
   }, [])
-
-  /* --------------------------------
-     RESET NAV UI AFTER ROUTE CHANGE
-
-     Keep the Navbar mounted across Next.js
-     client-side navigation, but always close
-     transient UI after the new route arrives.
-     This prevents stale animated overlays from
-     being reconciled during navigation.
-  -------------------------------- */
-
-  useEffect(() => {
-    setCatalogOpen(false)
-    setSearchOpen(false)
-    setSearchQuery('')
-    setMobileOpen(false)
-  }, [pathname])
 
   /* --------------------------------
      CLOSE SEARCH OUTSIDE
@@ -559,7 +539,7 @@ export default function Navbar() {
 
                           {navCategories.map(
                             (cat) => (
-                              <Link
+                              <a
                                 key={
                                   cat.slug
                                 }
@@ -598,7 +578,7 @@ export default function Navbar() {
                                   "
                                 />
 
-                              </Link>
+                              </a>
                             )
                           )}
 
@@ -607,7 +587,7 @@ export default function Navbar() {
 
                         {/* VIEW ALL */}
 
-                        <Link
+                        <a
                           href="/shop"
                           onClick={() =>
                             setCatalogOpen(
@@ -636,7 +616,7 @@ export default function Navbar() {
                             size={14}
                           />
 
-                        </Link>
+                        </a>
 
                       </div>
 
@@ -677,7 +657,7 @@ export default function Navbar() {
                 CENTER — DYNAMIC LOGO
             ================================= */}
 
-            <Link
+            <a
               href="/"
               onClick={closeMenus}
               className={`
@@ -732,7 +712,7 @@ export default function Navbar() {
 
               )}
 
-            </Link>
+            </a>
 
 
             {/* =================================
@@ -899,7 +879,7 @@ export default function Navbar() {
                             {suggestions.map(
                               (product) => (
 
-                                <Link
+                                <a
                                   key={
                                     product.id
                                   }
@@ -979,7 +959,7 @@ export default function Navbar() {
                                     "
                                   />
 
-                                </Link>
+                                </a>
 
                               )
                             )}
@@ -1047,7 +1027,7 @@ export default function Navbar() {
                             .slice(0, 5)
                             .map((cat) => (
 
-                              <Link
+                              <a
                                 key={
                                   cat.slug
                                 }
@@ -1069,7 +1049,7 @@ export default function Navbar() {
                                 "
                               >
                                 {cat.name}
-                              </Link>
+                              </a>
 
                             ))}
 
@@ -1088,9 +1068,8 @@ export default function Navbar() {
 
               {/* CART */}
 
-              <Link
+              <a
                 href="/cart"
-                onClick={closeMenus}
                 className={`
                   header-icon
                   relative
@@ -1134,7 +1113,7 @@ export default function Navbar() {
 
                 )}
 
-              </Link>
+              </a>
 
 
               {/* MOBILE MENU BUTTON */}
@@ -1205,7 +1184,7 @@ export default function Navbar() {
               border-v-border
             ">
 
-              <Link
+              <a
                 href="/"
                 onClick={closeMenus}
                 className="
@@ -1250,7 +1229,7 @@ export default function Navbar() {
 
                 )}
 
-              </Link>
+              </a>
 
 
               <button
@@ -1290,7 +1269,7 @@ export default function Navbar() {
                 {navCategories.map(
                   (cat, index) => (
 
-                    <Link
+                    <a
                       key={cat.slug}
                       href={`/shop?category=${cat.slug}`}
                       onClick={closeMenus}
@@ -1324,7 +1303,7 @@ export default function Navbar() {
                         size={15}
                       />
 
-                    </Link>
+                    </a>
 
                   )
                 )}
@@ -1343,7 +1322,7 @@ export default function Navbar() {
                 flex-col
               ">
 
-                <Link
+                <a
                   href="/shop"
                   onClick={closeMenus}
                   className="
@@ -1355,9 +1334,9 @@ export default function Navbar() {
                   "
                 >
                   Shop All
-                </Link>
+                </a>
 
-                <Link
+                <a
                   href="/about"
                   onClick={closeMenus}
                   className="
@@ -1369,9 +1348,9 @@ export default function Navbar() {
                   "
                 >
                   About
-                </Link>
+                </a>
 
-                <Link
+                <a
                   href="/contact"
                   onClick={closeMenus}
                   className="
@@ -1383,7 +1362,7 @@ export default function Navbar() {
                   "
                 >
                   Contact
-                </Link>
+                </a>
 
               </div>
 
