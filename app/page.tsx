@@ -572,36 +572,6 @@ const currentSlide = exploreSlides[safeExploreIndex]
         </div>
       </section>
 
-      {/* PINSTRIPE / WORK & OFFICE */}
-      <section className="bg-v-light px-4 py-20 md:px-8">
-        <div className="mx-auto max-w-7xl md:flex md:items-center md:gap-16">
-          <div className="mb-10 flex-1 md:mb-0">
-            <p className="section-label mb-4">Work & Office Attire</p>
-            <h2 className="font-display mb-6 text-4xl md:text-5xl">
-              Professional pinstripe
-              <br />
-              <em>collection</em>
-            </h2>
-            <p className="mb-8 max-w-md font-light leading-relaxed text-v-gray">
-              Elevate your workwear with our Professional Pinstripe Collection, where tailored sophistication meets modern confidence for a powerfully polished office look.
-            </p>
-            <Link href="/shop" className="btn-primary">Shop Now</Link>
-          </div>
-
-          <div className="grid flex-1 grid-cols-2 gap-4">
-            {allProducts.slice(0, 2).map(product => (
-              <Link key={product.id} href={`/shop/${product.id}`} className="product-card group">
-                <div className="aspect-[3/4] overflow-hidden bg-v-white">
-                  <img src={product.images?.[0] || '/placeholder-product.jpg'} alt={product.name} className="product-image h-full w-full object-cover" />
-                </div>
-                <p className="mt-2 truncate text-xs font-medium">{product.name}</p>
-                <p className="text-xs text-v-gray">৳{product.price.toLocaleString()}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* SECURE PAYMENT / FEATURES */}
       <section className="border-t border-v-border px-4 py-16 md:px-8 md:py-20">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-5 md:grid-cols-4 md:gap-8">
