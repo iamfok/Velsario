@@ -214,6 +214,7 @@ export default function HomePage() {
   const heroBanners = homeBanners.hero
   const secondaryBanners = homeBanners.secondary
   const bottomBanners = homeBanners.bottom
+  const [bottomBannerIndex, setBottomBannerIndex] = useState(0)
 
   useEffect(() => {
     const loadBanners = () => {
@@ -649,41 +650,145 @@ const currentSlide = exploreSlides[safeExploreIndex]
         </div>
       </section>
 
-      {/* BOTTOM / DISCOVER */}
-      <section className="relative overflow-hidden">
-        {bottomBanners.length > 0 ? (
-          bottomBanners[0].type === 'video' && bottomBanners[0].videoUrl ? (
-            <video src={bottomBanners[0].videoUrl} autoPlay muted loop playsInline className="h-72 w-full object-cover md:h-[420px]" />
-          ) : (
-            <picture>
-              {bottomBanners[0].mobileImage && <source media="(max-width: 767px)" srcSet={bottomBanners[0].mobileImage} />}
-              <img src={bottomBanners[0].desktopImage} alt={bottomBanners[0].title} className="h-72 w-full object-cover md:h-[420px]" />
-            </picture>
-          )
-        ) : (
-          <img
-            src="https://velsario.com/wp-content/uploads/2026/03/WhatsApp-Image-2026-03-20-at-9.30.33-PM-2.jpeg"
-            alt="Velsario Fashion"
-            className="h-72 w-full object-cover md:h-[420px]"
-          />
-        )}
+     {/* BOTTOM / DISCOVER */}
+<section className="relative overflow-hidden">
+  {bottomBanners.length > 0 ? (
+    <>
+      <div className="relative h-72 w-full md:h-[420px]">
+        {bottomBanners.map((banner, index) => {
+          const isActive = index === bottomBannerIndex
 
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 px-4 text-center text-white">
-          <div>
-            <h2 className="font-display text-3xl md:text-5xl">
-              {bottomBanners[0]?.heading || 'Discover the allure of'}
-              <br />
-              <em>{bottomBanners[0]?.subheading || 'fashion reinvented!'}</em>
-            </h2>
-            <p className="mb-8 mt-6 font-light text-gray-300">
-              {bottomBanners[0]?.description || 'Dive into a world of style with our latest collection!'}
-            </p>
-            <Link href={bottomBanners[0]?.buttonUrl || '/shop'} className="btn-white">
-              {bottomBanners[0]?.buttonText || 'Shop Now'}
-            </Link>
+          return (
+            <div
+              key={banner.id}
+              className={`absolute inset-0 transition-all duration-700 ${
+                isActive
+                  ? 'translate-x-0 opacity-100'
+                  : 'pointer-events-none translate-x-4 opacity-0'
+              }`}
+            >
+              {banner.type === 'video' && banner.videoUrl ? (
+                <video
+                  src={banner.videoUrl}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <picture>
+                  {banner.mobileImage && (
+                    <source
+                      media="(max-width: 767px)"
+                      srcSet={banner.mobileImage}
+                    />
+                  )}
+
+                  <img
+                    src={banner.desktopImage}
+                    alt={banner.title}
+                    className="h-full w-full object-cover"
+                  />
+                </picture>
+              )}
+
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 px-4 text-center text-white">
+                <div className="max-w-3xl">
+                  {(banner.heading || banner.subheading) && (
+                    <h2 className="font-display text-3xl md:text-5xl">
+                      {banner.heading && (
+                        <>
+                          {banner.heading}
+                          {banner.subheading && <br />}
+                        </>
+                      )}
+
+                      {banner.subheading && (
+                        <em>{banner.subheading}</em>
+                      )}
+                    </h2>
+                  )}
+
+                  {banner.description && (
+                    <p className="mb-8 mt-6 font-light text-gray-300">
+                      {banner.description}
+                    </p>
+                  )}
+
+                  {banner.buttonText && (
+                    <Link
+                      href={banner.buttonUrl || '/shop'}
+                      className="btn-white"
+                    >
+                      {banner.buttonText}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* SLIDER NAVIGATION */}
+      {bottomBanners.length > 1 && (
+        <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3">
+          <button
+            type="button"
+            onClick={() =>
+              setBottomBannerIndex(
+                (current) =>
+                  (current - 1 + bottomBanners.length) %
+                  bottomBanners.length
+              )
+            }
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/50 text-white transition-all duration-300 hover:bg-white hover:text-black"
+            aria-label="Previous banner"
+          >
+            ←
+          </button>
+
+          <div className="flex items-center gap-2">
+            {bottomBanners.map((banner, index) => (
+              <button
+                key={banner.id}
+                type="button"
+                onClick={() => setBottomBannerIndex(index)}
+                aria-label={`Go to banner ${index + 1}`}
+                className={`h-[2px] transition-all duration-300 ${
+                  index === bottomBannerIndex
+                    ? 'w-8 bg-white'
+                    : 'w-3 bg-white/40'
+                }`}
+              />
+            ))}
           </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              setBottomBannerIndex(
+                (current) =>
+                  (current + 1) % bottomBanners.length
+              )
+            }
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/50 text-white transition-all duration-300 hover:bg-white hover:text-black"
+            aria-label="Next banner"
+          >
+            →
+          </button>
         </div>
-      </section>
+      )}
+    </>
+  ) : (
+    <img
+      src="https://velsario.com/wp-content/uploads/2026/03/WhatsApp-Image-2026-03-20-at-9.30.33-PM-2.jpeg"
+      alt="Velsario Fashion"
+      className="h-72 w-full object-cover md:h-[420px]"
+    />
+  )}
+</section>
 
     </div>
   )
